@@ -2,6 +2,7 @@ package com.nju.spider.utils;
 
 import com.google.common.base.Strings;
 import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -17,7 +18,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 
-@Log
+@Slf4j
 public class HttpUtils {
 
     public static String doGetWithRetry(String url, int retryCount) {
