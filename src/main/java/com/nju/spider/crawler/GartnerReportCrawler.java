@@ -1,10 +1,15 @@
 package com.nju.spider.crawler;
 
+import com.nju.spider.db.JDBCUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
 import lombok.extern.slf4j.Slf4j;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 
 @Slf4j
@@ -32,7 +37,10 @@ public class GartnerReportCrawler extends BaseCrawler{
                     TagNode rootNodeContent = MyHtmlCleaner.clean(content);
                     Object[] downloadResourceElements =  rootNodeContent.evaluateXPath("//a/i[@id='eloqua-final-submit-loading']/../@href");
                     for (Object pdfUrl : downloadResourceElements) {
-
+                        Connection conn = JDBCUtils.getConn();
+                        PreparedStatement pstmt = conn.prepareStatement("select * from test");
+                        ResultSet rs =   pstmt.executeQuery();
+                        System.out.println(rs);
                     }
                 } catch (Exception ex) {
                     log.error("dealing with article url encounts error ", ex);
