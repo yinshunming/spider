@@ -29,7 +29,7 @@ public class HttpUtils {
             }
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
             }
         }
@@ -42,7 +42,7 @@ public class HttpUtils {
 
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         HttpGet httpGet = new HttpGet(url);
-        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(10000).setConnectTimeout(20000).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build();
         httpGet.setConfig(requestConfig);
 
         CloseableHttpResponse response = null;

@@ -12,14 +12,18 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Report {
-    private int id;
+    private Integer id;
     private String title;
     private Date publishTime;
     private String orgName;
     private String industryName;
     private String fileUrl;
     private String url;
+    private String indexUrl;
+    private String articleUrl;
     private String authors;
     private Date insertTime;
     private Date updateTime;
+    private Integer downloadStatus;
+    private String extra;
 }
