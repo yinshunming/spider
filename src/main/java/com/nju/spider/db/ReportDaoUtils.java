@@ -12,13 +12,24 @@ import java.util.List;
 
 @Slf4j
 public class ReportDaoUtils {
+
     public static List<Report> getReportsToDownload() {
         List<Report> reports = new ArrayList<>();
         Connection conn = null;
-
+        PreparedStatement ps = null;
+        ResultSet r = null;
         try {
             conn = JDBCUtils.getConn();
-            String sql = "SELECT * FROM report WHERE download_status = 0";
+            String sql = "SELECT id,url,indsert_time FROM report WHERE download_status = 0";
+            ps = conn.prepareStatement(sql);
+            r = ps.executeQuery();
+            while (r.next()) {
+                Report report = new Report();
+                report.setId(r.getInt("id"));
+                report.setUrl(r.getString("url"));
+                report.setInsertTime(r.getDate("insert_time"));
+                reports.add(report);
+            }
         } catch (Exception ex) {
             log.error("inserting report into db encounts error ", ex);
         }
@@ -39,7 +50,7 @@ public class ReportDaoUtils {
                 ps1.setString(1, report.getUrl());
                 r1 = ps1.executeQuery();
                 boolean haveCrawled = false;
-                while(r1.next()) {
+                while (r1.next()) {
                     int count = r1.getInt(1);
                     if (count > 0) {
                         haveCrawled = true;
