@@ -9,8 +9,13 @@ import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
 import lombok.extern.slf4j.Slf4j;
+import org.htmlcleaner.CleanerProperties;
+import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.TagNode;
+import org.w3c.dom.Document;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,6 +30,10 @@ public class GartnerReportCrawler extends BaseCrawler{
     private static final String indexUrl2 = "https://www.gartner.com/ngw/syspath-bin/gartner/dynamiccontent?" +
             "requestType=select-by-tags&designType=tiles&nPage=1&pageSize=78&languageCode=en&showLocalizedContent=false&" +
             "filterCodes=&randomSeed=&currentPagePath=/en/products/special-reports&tags=emt%3Apage%2Ftype%2Fspecial-reports%2Cemt%3Apage%2Fcontent-type%2Fspecial-reports";
+
+    private static final String updateIndex = "https://www.gartner.com/ngw/syspath-bin/gartner/dynamiccontent?requestType" +
+            "=select-by-tags&designType=tiles&nPage=1&pageSize=9&languageCode=en&showLocalizedContent=false&filterCodes=&" +
+            "randomSeed=&currentPagePath=/en/products/special-reports&tags=emt%3Apage%2Ftype%2Fspecial-reports%2Cemt%3Apage%2Fcontent-type%2Fspecial-reports";
 
     private static final String updateUrl = "";
 
@@ -64,7 +73,6 @@ public class GartnerReportCrawler extends BaseCrawler{
 //                        Report report = new Report();
 //                        report.setUrl((String) pdfUrl);
 //                        report.setIndustryName(industryName);
-//                        //TODO 还需要补充其他的信息
 //                        reportList.add(report);
 //                    }
 //
@@ -90,14 +98,27 @@ public class GartnerReportCrawler extends BaseCrawler{
                 report.setAuthors(doc.getString("authors"));
                 report.setTitle(doc.getString("title"));
                 report.setExtra(doc.toJSONString());
-                report.setIndexUrl(indexUrl2);
+                //report.setIndexUrl(indexUrl2);
+                report.setIndexUrl(updateIndex);
                 String articleUrl = baseUrl + doc.getString("url");
                 report.setArticleUrl(articleUrl);
                 String content = HttpUtils.doGetWithRetry(articleUrl, retryTimes);
                 TagNode rootNodeContent = MyHtmlCleaner.clean(content);
                 Object[] downloadResourceElements =  rootNodeContent.evaluateXPath("//a/i[@id='eloqua-final-submit-loading']/../@href");
+
+                String downloadUrl = ((String)downloadResourceElements[0]).trim();
+                if (!downloadUrl.endsWith("pdf")) {
+                    //需要再访问一层
+                    String tmpUrl = baseUrl + downloadUrl;
+                    String tmpContent = HttpUtils.doGetWithRetry(tmpUrl, retryTimes);
+                    TagNode rootNodeTmpContent = MyHtmlCleaner.clean(tmpContent);
+                    Document docTmpContent = new DomSerializer(new CleanerProperties()).createDOM(rootNodeTmpContent);
+                    XPath xpath = XPathFactory.newInstance().newXPath();;
+                    downloadUrl = xpath.evaluate("//div[contains(@class, 'cmp-globalsite-button')]//a/@href", docTmpContent);
+                }
+
                 //只需要取一个就行
-                report.setUrl((String) downloadResourceElements[0]);
+                report.setUrl(downloadUrl);
 
                 reportList.add(report);
             } catch (Exception ex) {

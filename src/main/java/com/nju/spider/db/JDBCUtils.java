@@ -33,28 +33,30 @@ public class JDBCUtils {
      */
     public static void close(PreparedStatement pstmt, Connection conn){
         close(null,pstmt,conn);
-
     }
+
+    public static void close(Connection conn) {
+        close(null, null, conn);
+    }
+
+
     public static void close(ResultSet rs, PreparedStatement pstmt, Connection conn){
         if(rs!=null){
             try {
                 rs.close();
             }catch(Exception e){
-                e.printStackTrace();
             }
         }
         if(pstmt!=null){
             try {
                 pstmt.close();
             }catch(Exception e){
-                e.printStackTrace();
             }
         }
         if(conn!=null){
             try {
                 conn.close();
             }catch(Exception e){
-                e.printStackTrace();
             }
         }
     }

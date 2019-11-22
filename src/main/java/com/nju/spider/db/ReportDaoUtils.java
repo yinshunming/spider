@@ -7,20 +7,37 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 public class ReportDaoUtils {
+    public static List<Report> getReportsToDownload() {
+        List<Report> reports = new ArrayList<>();
+        Connection conn = null;
+
+        try {
+            conn = JDBCUtils.getConn();
+            String sql = "SELECT * FROM report WHERE download_status = 0";
+        } catch (Exception ex) {
+            log.error("inserting report into db encounts error ", ex);
+        }
+        return reports;
+    }
+
 
     public static void insertReports(List<Report> reports) {
         for (Report report : reports) {
             Connection conn = null;
+            PreparedStatement ps1 = null;
+            ResultSet r1 = null;
+            PreparedStatement ps2 = null;
             try {
                 conn = JDBCUtils.getConn();
                 String sql1 = "SELECT COUNT(1) FROM report WHERE url = ?";
-                PreparedStatement ps1 = conn.prepareStatement(sql1);
+                ps1 = conn.prepareStatement(sql1);
                 ps1.setString(1, report.getUrl());
-                ResultSet r1 = ps1.executeQuery();
+                r1 = ps1.executeQuery();
                 boolean haveCrawled = false;
                 while(r1.next()) {
                     int count = r1.getInt(1);
@@ -37,7 +54,7 @@ public class ReportDaoUtils {
                 String sql2 = "INSERT INTO report (title, publish_time, org_name, industry_name, file_url, url, authors," +
                         " extra, indexUrl, articleUrl) " +
                         "VALUES(?,?,?,?,?,?,?,?,?,?)";
-                PreparedStatement ps2 = conn.prepareStatement(sql2);
+                ps2 = conn.prepareStatement(sql2);
                 ps2.setString(1, report.getTitle());
                 if (report.getPublishTime() != null) {
                     ps2.setDate(2, new Date(report.getPublishTime().getTime()));
@@ -53,9 +70,11 @@ public class ReportDaoUtils {
                 ps2.setString(9, report.getIndexUrl());
                 ps2.setString(10, report.getArticleUrl());
                 ps2.executeUpdate();
-
             } catch (Exception ex) {
                 log.error("inserting report into db encounts error ", ex);
+            } finally {
+                JDBCUtils.close(r1, ps1, null);
+                JDBCUtils.close(ps2, conn);
             }
         }
     }
