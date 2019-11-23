@@ -9,6 +9,12 @@ import java.util.Locale;
 @Slf4j
 public class FormatUtils {
 
+    private static ThreadLocal<SimpleDateFormat> publishDateSdfThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
+
+    public static String publishDateToString(Date publishDate) {
+        return publishDateSdfThreadLocal.get().format(publishDate);
+    }
+
     public static Date parseDateByDateFormate(String dateStr, SimpleDateFormat dateFormat) {
         Date date = null;
         try {

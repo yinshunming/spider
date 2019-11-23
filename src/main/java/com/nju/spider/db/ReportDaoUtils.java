@@ -20,7 +20,7 @@ public class ReportDaoUtils {
         ResultSet r = null;
         try {
             conn = JDBCUtils.getConn();
-            String sql = "SELECT id,url,indsert_time FROM report WHERE download_status = 0";
+            String sql = "SELECT id,url,insert_time,publish_time,org_name FROM report WHERE download_status = 0";
             ps = conn.prepareStatement(sql);
             r = ps.executeQuery();
             while (r.next()) {
@@ -28,10 +28,14 @@ public class ReportDaoUtils {
                 report.setId(r.getInt("id"));
                 report.setUrl(r.getString("url"));
                 report.setInsertTime(r.getDate("insert_time"));
+                report.setPublishTime(r.getDate("publish_time"));
+                report.setOrgName(r.getString("org_name"));
                 reports.add(report);
             }
         } catch (Exception ex) {
             log.error("inserting report into db encounts error ", ex);
+        } finally {
+            JDBCUtils.close(r, ps, conn);
         }
         return reports;
     }
@@ -87,6 +91,23 @@ public class ReportDaoUtils {
                 JDBCUtils.close(r1, ps1, null);
                 JDBCUtils.close(ps2, conn);
             }
+        }
+    }
+
+    public static void updateDownloadSatus(Report report) {
+        Connection conn = null;
+        PreparedStatement p = null;
+        try {
+            conn = JDBCUtils.getConn();
+            String sql = "UPDATE report SET download_status = 1, file_url = ? WHERE id = ?";
+            p = conn.prepareStatement(sql);
+            p.setString(1, report.getFileUrl());
+            p.setInt(2, report.getId());
+            p.executeUpdate();
+        } catch (Exception ex) {
+            log.error("updating status encounts error", ex);
+        } finally {
+            JDBCUtils.close(p, conn);
         }
     }
 }

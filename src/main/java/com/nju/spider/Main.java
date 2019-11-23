@@ -10,9 +10,7 @@ import com.nju.spider.download.DownloadTask;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class Main {
 
@@ -22,16 +20,17 @@ public class Main {
 
     private final static long downloadSleepInterval = 5 * 60 * 1000;
 
+    private final static long initDelay = 20 * 1000;
+
     public static void main(String [] args) {
         //更新任务一般量不大，单线程足矣，也可以防止爬的太厉害把网站弄down掉
         List<BaseCrawler> crawlerList = new ArrayList<>();
         crawlerList.add(new GartnerReportCrawler());
 
-        ExecutorService es = Executors.newFixedThreadPool(crawlThreadsNum);
+        ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {
-            es.submit(baseCrawler::run);
+            es.scheduleWithFixedDelay(baseCrawler::run, initDelay, baseCrawler.getIntervalTime(), TimeUnit.MILLISECONDS);
         }
-
 
         //TODO 抽出来做一个类
         ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);

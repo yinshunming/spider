@@ -5,6 +5,7 @@ import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
@@ -15,10 +16,14 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Slf4j
 public class HttpUtils {
+    private static final String defaulUserAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36";
 
     public static String doGetWithRetry(String url, int retryCount) {
         for (int i = 0 ; i < retryCount; i++) {
@@ -26,7 +31,6 @@ public class HttpUtils {
             if (StringUtils.isNotBlank(res)) {
                 return res;
             }
-
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
@@ -43,7 +47,7 @@ public class HttpUtils {
         HttpGet httpGet = new HttpGet(url);
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build();
         httpGet.setConfig(requestConfig);
-        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36");
+        httpGet.setHeader("User-Agent", defaulUserAgent);
 
         CloseableHttpResponse response = null;
         try {
@@ -68,9 +72,51 @@ public class HttpUtils {
                     response.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         return resStr;
+    }
+
+    public static boolean doDownload(String url, String filePath) {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpGet httpGet = new HttpGet(url);
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build();
+        httpGet.setHeader("User-Agent", defaulUserAgent);
+        httpGet.setConfig(requestConfig);
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            InputStream is = entity.getContent();
+            File file = new File(filePath);
+            file.getParentFile().mkdirs();
+            FileOutputStream fileout = new FileOutputStream(file);
+            /**
+             * 根据实际运行效果 设置缓冲区大小
+             */
+            byte[] buffer = new byte[1024 * 30];
+            int ch = 0;
+            while ((ch = is.read(buffer)) != -1) {
+                fileout.write(buffer, 0, ch);
+            }
+            is.close();
+            fileout.flush();
+            fileout.close();
+        } catch (Exception e) {
+            log.error("download file encounts error ", e);
+            return false;
+        } finally {
+            try {
+                if (httpClient != null) {
+                    httpClient.close();
+                }
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+            }
+        }
+
+        return true;
     }
 }
