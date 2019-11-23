@@ -3,7 +3,6 @@ package com.nju.spider;
 import com.nju.spider.bean.Report;
 import com.nju.spider.crawler.BaseCrawler;
 import com.nju.spider.crawler.GartnerReportCrawler;
-import com.nju.spider.db.JDBCUtils;
 import com.nju.spider.download.DownloadStrategy;
 import com.nju.spider.download.DownloadTask;
 
@@ -36,7 +35,7 @@ public class Main {
         ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
         while(true) {
             List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
-            //乱序提交，防止饿死情况发生
+            //乱序提交，防止饥饿情况(pdf下载时间很长)发生
             Collections.shuffle(reportToDowloadList);
 
             for (Report report : reportToDowloadList) {

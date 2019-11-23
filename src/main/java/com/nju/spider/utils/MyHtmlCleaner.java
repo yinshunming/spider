@@ -7,7 +7,7 @@ public class MyHtmlCleaner {
 
     private static HtmlCleaner cleaner = new HtmlCleaner();
     static {
-        //TODO 此处自定义一些clean规则，暂时使用默认的
+        //此处自定义一些clean规则，暂时使用默认的
     }
 
     public static TagNode clean(String htmlContent) {

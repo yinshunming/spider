@@ -35,11 +35,9 @@ public class GartnerReportCrawler extends BaseCrawler{
             "=select-by-tags&designType=tiles&nPage=1&pageSize=9&languageCode=en&showLocalizedContent=false&filterCodes=&" +
             "randomSeed=&currentPagePath=/en/products/special-reports&tags=emt%3Apage%2Ftype%2Fspecial-reports%2Cemt%3Apage%2Fcontent-type%2Fspecial-reports";
 
-    private static final String updateUrl = "";
-
     private static final String orgName = "Gartner";
     private static final int retryTimes = 5;
-    private static final int intervalTime = 12 * 3600 * 1000;  //12h间隔抓取时间
+    private static final long intervalTime = 6 * 3600 * 1000;  //6h间隔抓取时间
 
     private static ThreadLocal<SimpleDateFormat> simpleDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MMM dd, yyyy", Locale.US));
 
