@@ -111,7 +111,7 @@ public class GartnerReportCrawler extends BaseCrawler{
                     String tmpContent = HttpUtils.doGetWithRetry(tmpUrl, retryTimes);
                     TagNode rootNodeTmpContent = MyHtmlCleaner.clean(tmpContent);
                     Document docTmpContent = new DomSerializer(new CleanerProperties()).createDOM(rootNodeTmpContent);
-                    XPath xpath = XPathFactory.newInstance().newXPath();;
+                    XPath xpath = XPathFactory.newInstance().newXPath();
                     downloadUrl = xpath.evaluate("//div[contains(@class, 'cmp-globalsite-button')]//a/@href", docTmpContent);
                 }
 
