@@ -1,5 +1,7 @@
 package com.nju.spider.crawler;
 
+import com.nju.spider.bean.Report;
+import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,11 @@ import org.w3c.dom.Document;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 public class AccentureCrawler extends BaseCrawler{
@@ -21,6 +28,8 @@ public class AccentureCrawler extends BaseCrawler{
     private static final String historyIndexUrl = "https://newsroom.accenture.com/?page=%s";
     private static final String updateIndexUrl = "https://newsroom.accenture.com/";
     private static final String baseUrl = "https://newsroom.accenture.com";
+
+    private static ThreadLocal<SimpleDateFormat> simpleDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MMM dd, yyyy", Locale.US));
 
     @Override
     public String getCrawlName() {
@@ -40,6 +49,7 @@ public class AccentureCrawler extends BaseCrawler{
             String historyUrlToCrawl = String.format(historyIndexUrl, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
+                List<Report> reportList = new ArrayList<>();
                 String res = HttpUtils.doGetWithRetry(historyUrlToCrawl, retryTimes);
                 TagNode rootNode = MyHtmlCleaner.clean(res);
                 //获得文章页地址
@@ -55,13 +65,29 @@ public class AccentureCrawler extends BaseCrawler{
                         TagNode articleRootNode = MyHtmlCleaner.clean(articleContent);
                         Document articleDoc = new DomSerializer(new CleanerProperties()).createDOM(articleRootNode);
                         XPath xpath = XPathFactory.newInstance().newXPath();
-                        String publishDate = xpath.evaluate("//div[contains(@class, ' rel-date')]", articleDoc);
+                        String publishDateStr = xpath.evaluate("//div[contains(@class, ' rel-date')]", articleDoc);
+                        Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, simpleDateFormatThreadLocal.get());
                         Object[] hrefs = articleRootNode.evaluateXPath("//article//a/@href");
-                        for (Object href : hrefs) {
+                        for (Object hrefObj : hrefs) {
                             try {
                                 //对链接进行分析
+                                String href = ((String) hrefObj).trim();
+                                //只处理本站内的链接
+                                if (href.contains("accenture")) {
+                                    if (href.contains(".pdf")) {
+                                        //确定是一篇pdf，则下载
+                                        Report report = new Report();
+                                        report.setOrgName(orgName);
+                                        report.setPublishTime(publishDate);
+                                        report.setUrl(href);
+                                        reportList.add(report);
+                                        continue;
+                                    }
+
+                                    //继续判断是否有
+                                }
                             } catch (Exception ex) {
-                                log.error("dealing with href " + href + " encounts error", ex);
+                                log.error("dealing with href " + hrefObj + " encounts error", ex);
                             }
                         }
                     } catch (Exception ex) {

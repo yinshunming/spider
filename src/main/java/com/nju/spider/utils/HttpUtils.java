@@ -4,10 +4,7 @@ import com.google.common.base.Strings;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
+import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -20,10 +17,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class HttpUtils {
     private static final String defaulUserAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36";
+
+    private static final Pattern fileNamePattern = Pattern.compile("filename=\"(.*)\"");
+
 
     public static String doGetWithRetry(String url, int retryCount) {
         for (int i = 0 ; i < retryCount; i++) {
@@ -38,6 +39,38 @@ public class HttpUtils {
         }
 
         return null;
+    }
+
+    public static String doGetOrDownload(String url) {
+        String resStr = null;
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpGet httpGet = new HttpGet(url);
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).build();
+        httpGet.setConfig(requestConfig);
+        httpGet.setHeader("User-Agent", defaulUserAgent);
+
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpGet);
+            Header contentDisposition = response.getFirstHeader("Content-Disposition");
+            if (contentDisposition != null) {
+                String fileName = contentDisposition.getValue();
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (httpClient != null) {
+                    httpClient.close();
+                }
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+            }
+        }
+        return resStr;
     }
 
     public static String doGet(String url) {
