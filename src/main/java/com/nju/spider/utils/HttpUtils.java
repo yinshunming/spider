@@ -227,6 +227,18 @@ public class HttpUtils {
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpGet);
+
+            //如果头中有文件名，以头中的文件名为准
+            Header contentDisposition = response.getFirstHeader("Content-Disposition");
+            if (contentDisposition != null) {
+                String fileName = contentDisposition.getValue();
+                Matcher matcher = fileNamePattern.matcher(fileName);
+                if (matcher.find()) {
+                    //TODO 根据content-type设置类型，暂时只处理pdf类型
+                    filePath = filePath.replaceAll("[^/]+\\.pdf", fileName + ".pdf");
+                }
+            }
+
             HttpEntity entity = response.getEntity();
             InputStream is = entity.getContent();
             File file = new File(filePath);
