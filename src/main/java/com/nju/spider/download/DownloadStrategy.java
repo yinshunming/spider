@@ -28,6 +28,10 @@ public class DownloadStrategy {
         String url = report.getUrl();
         String [] pdfFileNames = url.split("/");
         String pdfFileName = pdfFileNames[pdfFileNames.length - 1];
+        //是否直接拼上pdf并不好呢?
+        if (!pdfFileName.endsWith(".pdf")) {
+            pdfFileName = pdfFileName + ".pdf";
+        }
         String publishDateStr = FormatUtils.publishDateToString(report.getPublishTime());
         String filePath = downloadFolderBase + "/" + report.getOrgName() + "/" + publishDateStr + "/" + pdfFileName;
         return filePath;

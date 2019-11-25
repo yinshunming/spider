@@ -1,10 +1,12 @@
 package com.nju.spider.crawler;
 
 import com.nju.spider.bean.Report;
+import com.nju.spider.download.DownloadStrategy;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.TagNode;
@@ -84,7 +86,33 @@ public class AccentureCrawler extends BaseCrawler{
                                         continue;
                                     }
 
-                                    //继续判断是否有
+                                    Report tmpReport = new Report();
+                                    tmpReport.setOrgName(orgName);
+                                    tmpReport.setPublishTime(publishDate);
+                                    tmpReport.setUrl(href);
+                                    //继续判断是否是pdf下载
+                                    String res2 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(href, retryTimes);
+                                    if (StringUtils.equals(res2, "pdf")) {
+                                        reportList.add(tmpReport);
+                                        continue;
+                                    }
+
+                                    TagNode res2RootNode = MyHtmlCleaner.clean(res2);
+                                    Document res2Doc = new DomSerializer(new CleanerProperties()).createDOM(res2RootNode);
+                                    XPath xpath2 = XPathFactory.newInstance().newXPath();
+                                    String reportUrl = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'REPORT')]/@href", res2Doc);
+                                    if (StringUtils.isNotBlank(reportUrl)) {
+                                        tmpReport.setUrl(reportUrl);
+                                        reportList.add(tmpReport);
+                                        continue;
+                                    }
+
+                                    String reportUrlOther = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'report')]/@href", res2Doc);
+                                    if (StringUtils.isNotBlank(reportUrlOther)) {
+                                        tmpReport.setUrl(reportUrlOther);
+                                        reportList.add(tmpReport);
+                                        continue;
+                                    }
                                 }
                             } catch (Exception ex) {
                                 log.error("dealing with href " + hrefObj + " encounts error", ex);
