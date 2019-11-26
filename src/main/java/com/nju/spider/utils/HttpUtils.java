@@ -25,9 +25,14 @@ public class HttpUtils {
     private static final Pattern fileNamePattern = Pattern.compile("filename=\"(.*)\"");
 
 
+
     public static String doGetWithRetry(String url, int retryCount) {
+        return doGetWithRetry(url, retryCount, false);
+    }
+
+    public static String doGetWithRetry(String url, int retryCount, boolean usingProxy) {
         for (int i = 0 ; i < retryCount; i++) {
-            String res = doGet(url);
+            String res = doGet(url, usingProxy);
             if (StringUtils.isNotBlank(res)) {
                 return res;
             }
@@ -36,8 +41,11 @@ public class HttpUtils {
             } catch (InterruptedException e) {
             }
         }
-
         return null;
+    }
+
+    public static String doGetWithRetryUsingProxy(String url, int retryCount) {
+        return doGetWithRetry(url, retryCount, true);
     }
 
     public static String doGetOrDownloadWithRetryTime(String url, String filePath, int retryCount) {
@@ -80,7 +88,7 @@ public class HttpUtils {
 
             Header contentType = response.getFirstHeader("Content-Type");
             //暂时只处理pdf类型
-            if (contentType != null && contentType.getName().contains("pdf")) {
+            if (contentType != null && contentType.getValue().contains("pdf")) {
                 HttpEntity entity = response.getEntity();
                 InputStream is = entity.getContent();
                 File file = new File(filePath);
@@ -124,9 +132,9 @@ public class HttpUtils {
         return resStr;
     }
 
-    public static String judgeUrlIfPdfDownloadWithRetryTimes(String url, int retryTimes) {
+    public static String judgeUrlIfPdfDownloadWithRetryTimes(String url, int retryTimes, boolean usingProxy) {
         for (int i = 0 ; i < retryTimes; i++) {
-            String res = judgeUrlIfPdfDownload(url);
+            String res = judgeUrlIfPdfDownload(url, usingProxy);
             if (StringUtils.isNotBlank(res)) {
                 return res;
             }
@@ -139,12 +147,17 @@ public class HttpUtils {
         return null;
     }
 
-    public static String judgeUrlIfPdfDownload(String url) {
+    public static String judgeUrlIfPdfDownload(String url, boolean usingProxy) {
         String resStr = null;
 
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         HttpGet httpGet = new HttpGet(url);
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).build();
+        if (usingProxy) {
+            HttpHost proxy = new HttpHost("localhost", 8589, "http");
+            requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).setProxy(proxy).build();
+        }
+
         httpGet.setConfig(requestConfig);
         httpGet.setHeader("User-Agent", defaulUserAgent);
 
@@ -155,7 +168,7 @@ public class HttpUtils {
             if (responseEntity != null && HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
                 Header contentType = response.getFirstHeader("Content-Type");
                 //暂时只处理pdf类型
-                if (contentType != null && contentType.getName().contains("pdf")) {
+                if (contentType != null && contentType.getValue().contains("pdf")) {
                     return "pdf";
                 } else {
                     resStr = EntityUtils.toString(responseEntity);
@@ -182,11 +195,19 @@ public class HttpUtils {
     }
 
     public static String doGet(String url) {
+        return doGet(url, false);
+    }
+
+    public static String doGet(String url, boolean usingProxy) {
         String resStr = null;
 
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         HttpGet httpGet = new HttpGet(url);
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build();
+        RequestConfig requestConfig =  RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build();
+        if (usingProxy) {
+            HttpHost proxy = new HttpHost("localhost", 8589, "http");
+            requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).setProxy(proxy).build();
+        }
         httpGet.setConfig(requestConfig);
         httpGet.setHeader("User-Agent", defaulUserAgent);
 

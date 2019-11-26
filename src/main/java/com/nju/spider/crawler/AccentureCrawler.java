@@ -1,6 +1,8 @@
 package com.nju.spider.crawler;
 
 import com.nju.spider.bean.Report;
+import com.nju.spider.db.JDBCUtils;
+import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.download.DownloadStrategy;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
@@ -52,7 +54,7 @@ public class AccentureCrawler extends BaseCrawler{
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
                 List<Report> reportList = new ArrayList<>();
-                String res = HttpUtils.doGetWithRetry(historyUrlToCrawl, retryTimes);
+                String res = HttpUtils.doGetWithRetryUsingProxy(historyUrlToCrawl, retryTimes);
                 TagNode rootNode = MyHtmlCleaner.clean(res);
                 //获得文章页地址
                 Object [] articleUrlObs = rootNode.evaluateXPath("//div[@id='tek-wrap-centerwell']//h4/a[@data-analytics-content-type='engagement']/@href");
@@ -62,56 +64,76 @@ public class AccentureCrawler extends BaseCrawler{
 //                NodeList nodeList = (NodeList) xpath.evaluate("//div[@id='tek-wrap-centerwell']//div[contains(@id, 'wrap-article-listing')]", doc, XPathConstants.NODESET);
                 for (Object articleUrlOb: articleUrlObs) {
                     try {
-                        String articleUrl = baseUrl + (String) articleUrlOb;
-                        String articleContent = HttpUtils.doGetWithRetry(articleUrl, retryTimes);
+                        String articleUrl = baseUrl + articleUrlOb;
+                        String articleContent = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
                         TagNode articleRootNode = MyHtmlCleaner.clean(articleContent);
                         Document articleDoc = new DomSerializer(new CleanerProperties()).createDOM(articleRootNode);
                         XPath xpath = XPathFactory.newInstance().newXPath();
-                        String publishDateStr = xpath.evaluate("//div[contains(@class, ' rel-date')]", articleDoc);
+                        String publishDateStr = xpath.evaluate("//div[contains(@class, 'rel-date')]", articleDoc);
                         Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, simpleDateFormatThreadLocal.get());
+
+                        String title = xpath.evaluate("//article//div[contains(@style, 'center')]//strong/text() | //article//strong/center/text()", articleDoc);
+
                         Object[] hrefs = articleRootNode.evaluateXPath("//article//a/@href");
                         for (Object hrefObj : hrefs) {
                             try {
                                 //对链接进行分析
                                 String href = ((String) hrefObj).trim();
+                                if (href.contains("mailto")) {
+                                    continue;
+                                }
+
+                                if (href.startsWith("//")) {
+                                    href = "https:" + href;
+                                }
+
+                                Report tmpReport = new Report();
+                                tmpReport.setOrgName(orgName);
+                                tmpReport.setPublishTime(publishDate);
+                                tmpReport.setUrl(href);
+                                tmpReport.setTitle(title);
+
                                 //只处理本站内的链接
                                 if (href.contains("accenture")) {
                                     if (href.contains(".pdf")) {
                                         //确定是一篇pdf，则下载
-                                        Report report = new Report();
-                                        report.setOrgName(orgName);
-                                        report.setPublishTime(publishDate);
-                                        report.setUrl(href);
-                                        reportList.add(report);
+                                        reportList.add(tmpReport);
                                         continue;
                                     }
 
-                                    Report tmpReport = new Report();
-                                    tmpReport.setOrgName(orgName);
-                                    tmpReport.setPublishTime(publishDate);
-                                    tmpReport.setUrl(href);
                                     //继续判断是否是pdf下载
-                                    String res2 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(href, retryTimes);
+                                    String res2 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(href, retryTimes, true);
+
                                     if (StringUtils.equals(res2, "pdf")) {
                                         reportList.add(tmpReport);
+                                        continue;
+                                    }
+
+                                    if (StringUtils.isBlank(res2)) {
                                         continue;
                                     }
 
                                     TagNode res2RootNode = MyHtmlCleaner.clean(res2);
                                     Document res2Doc = new DomSerializer(new CleanerProperties()).createDOM(res2RootNode);
                                     XPath xpath2 = XPathFactory.newInstance().newXPath();
-                                    String reportUrl = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'REPORT')]/@href", res2Doc);
+                                    String reportUrl = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'VIEW FULL REPORT')]/@href " +
+                                            "| //a[contains(@data-analytics-link-name, 'view full report')]/@href  " +
+                                            "|  //a[contains(@data-analytics-link-name, 'read the report')]/@href " +
+                                            "| //a[contains(@data-analytics-link-name, 'READ THE REPORT')]/@href", res2Doc);
                                     if (StringUtils.isNotBlank(reportUrl)) {
-                                        tmpReport.setUrl(reportUrl);
-                                        reportList.add(tmpReport);
-                                        continue;
-                                    }
+                                        if (reportUrl.startsWith("//")) {
+                                            reportUrl = "https:" + href;
+                                        }
+                                          tmpReport.setUrl(reportUrl);
+                                          reportList.add(tmpReport);
+//                                        //宁愿多访问一次网络，确保确实是pdf
+//                                        String res3 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(reportUrl, retryTimes, true);
+//                                        if (StringUtils.equals(res3, "pdf")) {
+//                                            tmpReport.setUrl(reportUrl);
+//                                            reportList.add(tmpReport);
+//                                            continue;
+//                                        }
 
-                                    String reportUrlOther = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'report')]/@href", res2Doc);
-                                    if (StringUtils.isNotBlank(reportUrlOther)) {
-                                        tmpReport.setUrl(reportUrlOther);
-                                        reportList.add(tmpReport);
-                                        continue;
                                     }
                                 }
                             } catch (Exception ex) {
@@ -122,9 +144,14 @@ public class AccentureCrawler extends BaseCrawler{
                         log.error("dealing with articleUrl " + articleUrlOb + " encounts error", ex);
                     }
                 }
+
+                ReportDaoUtils.insertReports(reportList);
+
             } catch (Exception e) {
                 log.error("dealing history url encounts error " + historyUrlToCrawl, e);
             }
+
+
         }
 
     }

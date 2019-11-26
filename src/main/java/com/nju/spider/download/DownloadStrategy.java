@@ -1,11 +1,9 @@
 package com.nju.spider.download;
 
 import com.nju.spider.bean.Report;
-import com.nju.spider.db.JDBCUtils;
 import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.FormatUtils;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
