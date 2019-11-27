@@ -49,7 +49,7 @@ public class AccentureCrawler extends BaseCrawler{
     @Override
     public void crawl() {
         //先爬历史
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 433; i++) {
             String historyUrlToCrawl = String.format(historyIndexUrl, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
@@ -79,7 +79,8 @@ public class AccentureCrawler extends BaseCrawler{
                             try {
                                 //对链接进行分析
                                 String href = ((String) hrefObj).trim();
-                                if (href.contains("mailto")) {
+                                if (href.contains("mailto") || href.trim().equals("http://www.accenture.com/")
+                                        || href.trim().equals("http://www.accenture.com") || !href.contains("accenture")) {
                                     continue;
                                 }
 
@@ -87,45 +88,47 @@ public class AccentureCrawler extends BaseCrawler{
                                     href = "https:" + href;
                                 }
 
+
                                 Report tmpReport = new Report();
                                 tmpReport.setOrgName(orgName);
                                 tmpReport.setPublishTime(publishDate);
                                 tmpReport.setUrl(href);
                                 tmpReport.setTitle(title);
+                                tmpReport.setIndexUrl(historyUrlToCrawl);
+                                tmpReport.setArticleUrl(href);
 
                                 //只处理本站内的链接
-                                if (href.contains("accenture")) {
-                                    if (href.contains(".pdf")) {
-                                        //确定是一篇pdf，则下载
-                                        reportList.add(tmpReport);
-                                        continue;
+                                if (href.contains(".pdf")) {
+                                    //确定是一篇pdf，则下载
+                                    reportList.add(tmpReport);
+                                    continue;
+                                }
+
+                                //继续判断是否是pdf下载
+                                String res2 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(href, retryTimes, true);
+
+                                if (StringUtils.equals(res2, "pdf")) {
+                                    reportList.add(tmpReport);
+                                    continue;
+                                }
+
+                                if (StringUtils.isBlank(res2)) {
+                                    continue;
+                                }
+
+                                TagNode res2RootNode = MyHtmlCleaner.clean(res2);
+                                Document res2Doc = new DomSerializer(new CleanerProperties()).createDOM(res2RootNode);
+                                XPath xpath2 = XPathFactory.newInstance().newXPath();
+                                String reportUrl = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'VIEW FULL REPORT')]/@href " +
+                                        "| //a[contains(@data-analytics-link-name, 'view full report')]/@href  " +
+                                        "|  //a[contains(@data-analytics-link-name, 'read the report')]/@href " +
+                                        "| //a[contains(@data-analytics-link-name, 'READ THE REPORT')]/@href", res2Doc);
+                                if (StringUtils.isNotBlank(reportUrl)) {
+                                    if (reportUrl.startsWith("//")) {
+                                        reportUrl = "https:" + reportUrl;
                                     }
-
-                                    //继续判断是否是pdf下载
-                                    String res2 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(href, retryTimes, true);
-
-                                    if (StringUtils.equals(res2, "pdf")) {
-                                        reportList.add(tmpReport);
-                                        continue;
-                                    }
-
-                                    if (StringUtils.isBlank(res2)) {
-                                        continue;
-                                    }
-
-                                    TagNode res2RootNode = MyHtmlCleaner.clean(res2);
-                                    Document res2Doc = new DomSerializer(new CleanerProperties()).createDOM(res2RootNode);
-                                    XPath xpath2 = XPathFactory.newInstance().newXPath();
-                                    String reportUrl = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'VIEW FULL REPORT')]/@href " +
-                                            "| //a[contains(@data-analytics-link-name, 'view full report')]/@href  " +
-                                            "|  //a[contains(@data-analytics-link-name, 'read the report')]/@href " +
-                                            "| //a[contains(@data-analytics-link-name, 'READ THE REPORT')]/@href", res2Doc);
-                                    if (StringUtils.isNotBlank(reportUrl)) {
-                                        if (reportUrl.startsWith("//")) {
-                                            reportUrl = "https:" + href;
-                                        }
-                                          tmpReport.setUrl(reportUrl);
-                                          reportList.add(tmpReport);
+                                      tmpReport.setUrl(reportUrl);
+                                      reportList.add(tmpReport);
 //                                        //宁愿多访问一次网络，确保确实是pdf
 //                                        String res3 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(reportUrl, retryTimes, true);
 //                                        if (StringUtils.equals(res3, "pdf")) {
@@ -134,7 +137,7 @@ public class AccentureCrawler extends BaseCrawler{
 //                                            continue;
 //                                        }
 
-                                    }
+
                                 }
                             } catch (Exception ex) {
                                 log.error("dealing with href " + hrefObj + " encounts error", ex);
