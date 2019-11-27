@@ -115,6 +115,10 @@ public class GartnerReportCrawler extends BaseCrawler{
                     downloadUrl = xpath.evaluate("//div[contains(@class, 'cmp-globalsite-button')]//a/@href", docTmpContent);
                 }
 
+                if (downloadUrl.equals("/en/trends/top-insights")) {
+                    return;
+                }
+
                 //只需要取一个就行
                 report.setUrl(downloadUrl);
 
