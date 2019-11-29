@@ -155,7 +155,7 @@ public class HttpUtils {
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).build();
         if (usingProxy) {
             HttpHost proxy = new HttpHost("localhost", 8589, "http");
-            requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).setProxy(proxy).build();
+            requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).setProxy(proxy).build();
         }
 
         httpGet.setConfig(requestConfig);
@@ -206,7 +206,7 @@ public class HttpUtils {
         RequestConfig requestConfig =  RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build();
         if (usingProxy) {
             HttpHost proxy = new HttpHost("localhost", 8589, "http");
-            requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).setProxy(proxy).build();
+            requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).setProxy(proxy).build();
         }
         httpGet.setConfig(requestConfig);
         httpGet.setHeader("User-Agent", defaulUserAgent);

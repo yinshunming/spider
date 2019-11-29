@@ -49,7 +49,7 @@ public class AccentureCrawler extends BaseCrawler{
     @Override
     public void crawl() {
         //先爬历史
-        for (int i = 1; i <= 433; i++) {
+        for (int i = 114; i <= 433; i++) {
             String historyUrlToCrawl = String.format(historyIndexUrl, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
@@ -99,6 +99,7 @@ public class AccentureCrawler extends BaseCrawler{
 
                                 //只处理本站内的链接
                                 if (href.contains(".pdf")) {
+                                    tmpReport.setArticleUrl(articleUrl);
                                     //确定是一篇pdf，则下载
                                     reportList.add(tmpReport);
                                     continue;
@@ -108,6 +109,7 @@ public class AccentureCrawler extends BaseCrawler{
                                 String res2 = HttpUtils.judgeUrlIfPdfDownloadWithRetryTimes(href, retryTimes, true);
 
                                 if (StringUtils.equals(res2, "pdf")) {
+                                    tmpReport.setArticleUrl(articleUrl);
                                     reportList.add(tmpReport);
                                     continue;
                                 }
@@ -119,10 +121,11 @@ public class AccentureCrawler extends BaseCrawler{
                                 TagNode res2RootNode = MyHtmlCleaner.clean(res2);
                                 Document res2Doc = new DomSerializer(new CleanerProperties()).createDOM(res2RootNode);
                                 XPath xpath2 = XPathFactory.newInstance().newXPath();
-                                String reportUrl = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'VIEW FULL REPORT')]/@href " +
-                                        "| //a[contains(@data-analytics-link-name, 'view full report')]/@href  " +
+                                String reportUrl = xpath2.evaluate("//a[contains(@data-analytics-link-name, 'FULL REPORT')]/@href " +
+                                        "| //a[contains(@data-analytics-link-name, 'full report')]/@href  " +
                                         "|  //a[contains(@data-analytics-link-name, 'read the report')]/@href " +
-                                        "| //a[contains(@data-analytics-link-name, 'READ THE REPORT')]/@href", res2Doc);
+                                        "| //a[contains(@data-analytics-link-name, 'READ THE REPORT')]/@href " +
+                                        "| //a[contains(@title, 'full article')]/@href ", res2Doc);
                                 if (StringUtils.isNotBlank(reportUrl)) {
                                     if (reportUrl.startsWith("//")) {
                                         reportUrl = "https:" + reportUrl;
