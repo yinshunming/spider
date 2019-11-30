@@ -26,6 +26,8 @@ public class DownloadStrategy {
         String url = report.getUrl();
         String [] pdfFileNames = url.split("/");
         String pdfFileName = pdfFileNames[pdfFileNames.length - 1];
+        //处理某些文件名 .pdf#xxx之类
+        pdfFileName = pdfFileName.replaceAll("\\.pdf.*", ".pdf");
         //是否直接拼上pdf并不好呢?
         if (!pdfFileName.endsWith(".pdf")) {
             pdfFileName = pdfFileName + ".pdf";

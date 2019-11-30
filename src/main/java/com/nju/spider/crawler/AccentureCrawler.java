@@ -26,7 +26,7 @@ import java.util.Locale;
 @Slf4j
 public class AccentureCrawler extends BaseCrawler{
     private static final String orgName = "Accenture";
-    private static final int retryTimes = 8;
+    private static final int retryTimes = 3;
     private static final long intervalTime = 8 * 3600 * 1000;  //8h间隔抓取时间
 
     private static final String historyIndexUrl = "https://newsroom.accenture.com/?page=%s";
@@ -49,7 +49,7 @@ public class AccentureCrawler extends BaseCrawler{
     @Override
     public void crawl() {
         //先爬历史
-        for (int i = 315; i <= 433; i++) {
+        for (int i = 362; i <= 433; i++) {
             String historyUrlToCrawl = String.format(historyIndexUrl, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
