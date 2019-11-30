@@ -33,7 +33,7 @@ public class FormatUtils {
             try {
                 date = smdf.parse(dateStr);
             } catch (Exception ex) {
-
+                log.error("parsing date encounts error ", ex);
             }
 
             if (date != null) {
@@ -46,7 +46,8 @@ public class FormatUtils {
     public  static void main(String [] args) {
         SimpleDateFormat dateformat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         SimpleDateFormat dateformat2 = new SimpleDateFormat("");
-        String dateStr = "June 05, 2017";
+        String dateStr =
+                "            June 08, 2010   ";
         String dateStr1 = "2017-06-15T04:00:00Z";
         Date date = FormatUtils.parseDateByMutilDateFormate(dateStr, dateformat);
         System.out.println(date);

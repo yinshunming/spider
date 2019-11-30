@@ -49,7 +49,7 @@ public class AccentureCrawler extends BaseCrawler{
     @Override
     public void crawl() {
         //先爬历史
-        for (int i = 114; i <= 433; i++) {
+        for (int i = 315; i <= 433; i++) {
             String historyUrlToCrawl = String.format(historyIndexUrl, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
@@ -70,7 +70,7 @@ public class AccentureCrawler extends BaseCrawler{
                         Document articleDoc = new DomSerializer(new CleanerProperties()).createDOM(articleRootNode);
                         XPath xpath = XPathFactory.newInstance().newXPath();
                         String publishDateStr = xpath.evaluate("//div[contains(@class, 'rel-date')]", articleDoc);
-                        Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, simpleDateFormatThreadLocal.get());
+                        Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr.trim(), simpleDateFormatThreadLocal.get());
 
                         String title = xpath.evaluate("//article//div[contains(@style, 'center')]//strong/text() | //article//strong/center/text()", articleDoc);
 
