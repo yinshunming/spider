@@ -72,7 +72,9 @@ public class AccentureCrawler extends BaseCrawler{
                         String publishDateStr = xpath.evaluate("//div[contains(@class, 'rel-date')]", articleDoc);
                         Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr.trim(), simpleDateFormatThreadLocal.get());
 
-                        String title = xpath.evaluate("//article//div[contains(@style, 'center')]//strong/text() | //article//strong/center/text()", articleDoc);
+                        String title = xpath.evaluate("//article//div[contains(@style, 'center')]//strong/text() | //article//strong/center/text()" +
+                                " | //div[@id='art-hero']//h1/text()" +
+                                " | //div[@id='content-details']//div[@align='center']/b/text()", articleDoc);
 
                         Object[] hrefs = articleRootNode.evaluateXPath("//article//a/@href");
                         for (Object hrefObj : hrefs) {
