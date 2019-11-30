@@ -1,5 +1,6 @@
 package com.nju.spider.utils;
 
+import com.nju.spider.download.DownloadStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
@@ -63,6 +64,7 @@ public class HttpUtils {
         return null;
     }
 
+
     //这个方法其实不太好，写了就写了吧
     public static String doGetOrDownload(String url, String filePath) {
         String resStr = null;
@@ -75,16 +77,17 @@ public class HttpUtils {
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpGet);
-            //如果头中有文件名，以头中的文件名为准
-            Header contentDisposition = response.getFirstHeader("Content-Disposition");
-            if (contentDisposition != null) {
-                String fileName = contentDisposition.getValue();
-                Matcher matcher = fileNamePattern.matcher(fileName);
-                if (matcher.find()) {
-                    //TODO 根据content-type设置类型，暂时只处理pdf类型
-                    filePath = filePath.replaceAll("[^/]+\\.pdf", fileName + ".pdf");
-                }
-            }
+            filePath = DownloadStrategy.changeFileNameAccordingToResponse(response, filePath);
+//            Header contentDisposition = response.getFirstHeader("Content-Disposition");
+//            if (contentDisposition != null) {
+//                String fileName = contentDisposition.getValue();
+//                Matcher matcher = fileNamePattern.matcher(fileName);
+//                if (matcher.find()) {
+//                    String newFileName = matcher.group(1);
+//                    //TODO 根据content-type设置类型，暂时只处理pdf类型
+//                    filePath = filePath.replaceAll("[^/]+\\.pdf", fileName + ".pdf");
+//                }
+//            }
 
             Header contentType = response.getFirstHeader("Content-Type");
             //暂时只处理pdf类型
@@ -240,42 +243,47 @@ public class HttpUtils {
     }
 
     public static boolean doDownload(String url, String filePath) {
+        return doDownload(url, filePath, false);
+    }
+
+
+    public static boolean doDownloadWithProxy(String url, String filePath) {
+        return doDownload(url, filePath, true);
+    }
+
+    public static boolean doDownload(String url, String filePath, boolean useProxy) {
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         HttpGet httpGet = new HttpGet(url);
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).build();
+        if (useProxy) {
+            HttpHost proxy = new HttpHost("localhost", 8589, "http");
+            requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).setProxy(proxy).build();
+        }
         httpGet.setHeader("User-Agent", defaulUserAgent);
         httpGet.setConfig(requestConfig);
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpGet);
 
-            //如果头中有文件名，以头中的文件名为准
-            Header contentDisposition = response.getFirstHeader("Content-Disposition");
-            if (contentDisposition != null) {
-                String fileName = contentDisposition.getValue();
-                Matcher matcher = fileNamePattern.matcher(fileName);
-                if (matcher.find()) {
-                    //TODO 根据content-type设置类型，暂时只处理pdf类型
-                    filePath = filePath.replaceAll("[^/]+\\.pdf", fileName + ".pdf");
-                }
-            }
-
+            filePath = DownloadStrategy.changeFileNameAccordingToResponse(response, filePath);
             HttpEntity entity = response.getEntity();
-            InputStream is = entity.getContent();
-            File file = new File(filePath);
-            file.getParentFile().mkdirs();
-            FileOutputStream fileout = new FileOutputStream(file);
-            /**
-             * 根据实际运行效果 设置缓冲区大小
-             */
-            byte[] buffer = new byte[1024 * 30];
-            int ch = 0;
-            while ((ch = is.read(buffer)) != -1) {
-                fileout.write(buffer, 0, ch);
+            if (entity != null && HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+                InputStream is = entity.getContent();
+                File file = new File(filePath);
+                file.getParentFile().mkdirs();
+                FileOutputStream fileout = new FileOutputStream(file);
+                /**
+                 * 根据实际运行效果 设置缓冲区大小
+                 */
+                byte[] buffer = new byte[1024 * 30];
+                int ch = 0;
+                while ((ch = is.read(buffer)) != -1) {
+                    fileout.write(buffer, 0, ch);
+                }
+                is.close();
+                fileout.flush();
+                fileout.close();
             }
-            is.close();
-            fileout.flush();
-            fileout.close();
         } catch (Exception e) {
             log.error("download file encounts error ", e);
             return false;

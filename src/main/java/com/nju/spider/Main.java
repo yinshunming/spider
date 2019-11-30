@@ -33,21 +33,26 @@ public class Main {
             es.scheduleWithFixedDelay(baseCrawler::run, initDelay, baseCrawler.getIntervalTime(), TimeUnit.MILLISECONDS);
         }
 
-//        //TODO 抽出来做一个类
-//        ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
-//        while(true) {
-//            List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
-//            //乱序提交，防止饥饿情况(pdf下载时间很长)发生
-//            Collections.shuffle(reportToDowloadList);
-//
-//            for (Report report : reportToDowloadList) {
-//                downloadEs.submit(new DownloadTask(report));
-//            }
-//            try {
-//                Thread.sleep(downloadSleepInterval);
-//            } catch (InterruptedException e) {
-//            }
-//        }
+        //TODO 抽出来做一个类
+        ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
+        while(true) {
+            List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
+            //乱序提交，防止饥饿情况(pdf下载时间很长)发生
+            Collections.shuffle(reportToDowloadList);
+
+            for (Report report : reportToDowloadList) {
+                //这边可以做个策略
+                if (report.getOrgName().equals("Accenture")) {
+                    downloadEs.submit(new DownloadTask(report, true));
+                } else {
+                    downloadEs.submit(new DownloadTask(report, false));
+                }
+            }
+            try {
+                Thread.sleep(downloadSleepInterval);
+            } catch (InterruptedException e) {
+            }
+        }
 
     }
 }

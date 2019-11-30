@@ -48,8 +48,8 @@ public class AccentureCrawler extends BaseCrawler{
 
     @Override
     public void crawl() {
-        //先爬历史
-        for (int i = 362; i <= 433; i++) {
+        //更新只需要爬一页
+        for (int i = 1; i <= 1; i++) {
             String historyUrlToCrawl = String.format(historyIndexUrl, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
