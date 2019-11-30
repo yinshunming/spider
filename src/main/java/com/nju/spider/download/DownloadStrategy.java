@@ -43,23 +43,25 @@ public class DownloadStrategy {
         return filePath;
     }
 
-    public static String changeFileNameAccordingToResponse(CloseableHttpResponse response, String filePath) {
+    public static String changeFileNameAccordingToResponse(CloseableHttpResponse response, Report report) {
+        String filePath = DownloadStrategy.getFilePath(report);
         try {
-            Header contentDisposition = response.getFirstHeader("Content-Disposition");
 
+            Header contentDisposition = response.getFirstHeader("Content-Disposition");
             //如果头中有文件名，以头中的文件名为准
             if (contentDisposition != null) {
-
-                    String fileName = contentDisposition.getValue();
-                    Matcher matcher = fileNamePattern.matcher(fileName);
-                    if (matcher.find()) {
-                        String newFileName = matcher.group(1);
-                        //TODO 根据content-type设置类型，暂时只处理pdf类型
-                        filePath = filePath.replaceAll("[^/]+\\.pdf", newFileName);
-                    }
+                String fileName = contentDisposition.getValue();
+                Matcher matcher = fileNamePattern.matcher(fileName);
+                if (matcher.find()) {
+                    String newFileName = matcher.group(1);
+                    //TODO 根据content-type设置类型，暂时只处理pdf类型
+                    filePath = filePath.replaceAll("[^/]+\\.pdf", newFileName);
+                }
             }
         } catch (Exception ex) {
         }
+
+        report.setFileUrl(filePath);
         return filePath;
     }
 

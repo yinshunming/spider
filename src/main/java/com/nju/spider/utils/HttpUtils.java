@@ -1,5 +1,6 @@
 package com.nju.spider.utils;
 
+import com.nju.spider.bean.Report;
 import com.nju.spider.download.DownloadStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -49,9 +50,9 @@ public class HttpUtils {
         return doGetWithRetry(url, retryCount, true);
     }
 
-    public static String doGetOrDownloadWithRetryTime(String url, String filePath, int retryCount) {
+    public static String doGetOrDownloadWithRetryTime(Report report, int retryCount) {
         for (int i = 0 ; i < retryCount; i++) {
-            String res = doGetOrDownload(url, filePath);
+            String res = doGetOrDownload(report);
             if (StringUtils.isNotBlank(res)) {
                 return res;
             }
@@ -66,7 +67,9 @@ public class HttpUtils {
 
 
     //这个方法其实不太好，写了就写了吧
-    public static String doGetOrDownload(String url, String filePath) {
+    public static String doGetOrDownload(Report report) {
+        String url = report.getUrl();
+
         String resStr = null;
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         HttpGet httpGet = new HttpGet(url);
@@ -77,17 +80,7 @@ public class HttpUtils {
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpGet);
-            filePath = DownloadStrategy.changeFileNameAccordingToResponse(response, filePath);
-//            Header contentDisposition = response.getFirstHeader("Content-Disposition");
-//            if (contentDisposition != null) {
-//                String fileName = contentDisposition.getValue();
-//                Matcher matcher = fileNamePattern.matcher(fileName);
-//                if (matcher.find()) {
-//                    String newFileName = matcher.group(1);
-//                    //TODO 根据content-type设置类型，暂时只处理pdf类型
-//                    filePath = filePath.replaceAll("[^/]+\\.pdf", fileName + ".pdf");
-//                }
-//            }
+            String filePath = DownloadStrategy.changeFileNameAccordingToResponse(response, report);
 
             Header contentType = response.getFirstHeader("Content-Type");
             //暂时只处理pdf类型
@@ -242,16 +235,18 @@ public class HttpUtils {
         return resStr;
     }
 
-    public static boolean doDownload(String url, String filePath) {
-        return doDownload(url, filePath, false);
+    public static boolean doDownload(Report report) {
+        return doDownload(report, false);
     }
 
 
-    public static boolean doDownloadWithProxy(String url, String filePath) {
-        return doDownload(url, filePath, true);
+    public static boolean doDownloadWithProxy(Report report) {
+        return doDownload(report, true);
     }
 
-    public static boolean doDownload(String url, String filePath, boolean useProxy) {
+    public static boolean doDownload(Report report, boolean useProxy) {
+        String url = report.getUrl();
+
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         HttpGet httpGet = new HttpGet(url);
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).build();
@@ -265,7 +260,8 @@ public class HttpUtils {
         try {
             response = httpClient.execute(httpGet);
 
-            filePath = DownloadStrategy.changeFileNameAccordingToResponse(response, filePath);
+            String filePath = DownloadStrategy.changeFileNameAccordingToResponse(response, report);
+
             HttpEntity entity = response.getEntity();
             if (entity != null && HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
                 InputStream is = entity.getContent();
