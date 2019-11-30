@@ -283,10 +283,10 @@ public class HttpUtils {
                 is.close();
                 fileout.flush();
                 fileout.close();
+                return true;
             }
         } catch (Exception e) {
             log.error("download file encounts error ", e);
-            return false;
         } finally {
             try {
                 if (httpClient != null) {
@@ -299,7 +299,7 @@ public class HttpUtils {
             }
         }
 
-        return true;
+        return false;
     }
 
     public static void main(String [] args) {
