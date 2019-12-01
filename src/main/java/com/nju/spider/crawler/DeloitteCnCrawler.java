@@ -12,7 +12,7 @@ import java.util.Locale;
 
 /**
  * 德勤中国网站爬虫
- * TODO 历史爬虫35页后部分格式不一致，因为pdf比较老，数量比较少，暂时不处理了
+ * 主要pdf分布在两处，一处是 新闻稿， 一处是 文章 (较少)
  */
 @Slf4j
 public class DeloitteCnCrawler extends BaseCrawler{
@@ -23,6 +23,9 @@ public class DeloitteCnCrawler extends BaseCrawler{
 
     private static final String historyIndexUrl = "https://www2.deloitte.com/cn/zh/footerlinks/pressreleasespage.html?i=1;page=%s;" +
             "q=*;rank=rank-search;sp_q_18=%22%E6%96%B0%E9%97%BB%E7%A8%BF%22;sp_s=date-published%7Ctitle;sp_x_18=content-type;view=xml&pageNumber=2";
+
+    private static final String history2IndexUrl = "https://www2.deloitte.com/cn/zh/footerlinks/pressreleasespage.html?i=1;page=%s;" +
+            "pageNumber=2;q=*;rank=rank-search;sp_q_18=%22%E6%96%87%E7%AB%A0%22;sp_s=date-published%7Ctitle;sp_x_18=content-type;view=xml&pageNumber=3";
 
     private static final String baseUrl = "https://www2.deloitte.com";
 
