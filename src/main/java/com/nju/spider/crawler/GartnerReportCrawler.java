@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Locale;
 
 
+/**
+ * Gartner爬虫
+ */
 @Slf4j
 public class GartnerReportCrawler extends BaseCrawler{
     private static final String baseUrl = "https://www.gartner.com";

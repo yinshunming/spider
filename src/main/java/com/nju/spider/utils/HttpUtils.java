@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Proxy;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +27,11 @@ public class HttpUtils {
 
     private static final Pattern fileNamePattern = Pattern.compile("filename=\"(.*)\"");
 
+
+    public static HttpHost getProxy() {
+        HttpHost proxy = new HttpHost("localhost", 8589, "http");
+        return proxy;
+    }
 
 
     public static String doGetWithRetry(String url, int retryCount) {
@@ -150,7 +156,7 @@ public class HttpUtils {
         HttpGet httpGet = new HttpGet(url);
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).build();
         if (usingProxy) {
-            HttpHost proxy = new HttpHost("localhost", 8589, "http");
+            HttpHost proxy = getProxy();
             requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).setProxy(proxy).build();
         }
 
@@ -201,7 +207,7 @@ public class HttpUtils {
         HttpGet httpGet = new HttpGet(url);
         RequestConfig requestConfig =  RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build();
         if (usingProxy) {
-            HttpHost proxy = new HttpHost("localhost", 8589, "http");
+            HttpHost proxy = getProxy();
             requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).setProxy(proxy).build();
         }
         httpGet.setConfig(requestConfig);
@@ -251,7 +257,7 @@ public class HttpUtils {
         HttpGet httpGet = new HttpGet(url);
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).build();
         if (useProxy) {
-            HttpHost proxy = new HttpHost("localhost", 8589, "http");
+            HttpHost proxy = getProxy();
             requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).setProxy(proxy).build();
         }
         httpGet.setHeader("User-Agent", defaulUserAgent);

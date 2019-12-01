@@ -23,6 +23,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * 埃森哲网站爬虫
+ */
 @Slf4j
 public class AccentureCrawler extends BaseCrawler{
     private static final String orgName = "Accenture";
@@ -44,6 +47,11 @@ public class AccentureCrawler extends BaseCrawler{
     @Override
     public long getIntervalTime() {
         return intervalTime;
+    }
+
+    @Override
+    public boolean needProxyToDownload() {
+        return true;
     }
 
     @Override

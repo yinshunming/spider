@@ -1,8 +1,12 @@
 package com.nju.spider.utils;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+
 @Slf4j
 public class FormatUtils {
 
@@ -41,6 +45,16 @@ public class FormatUtils {
     }
 
     public  static void main(String [] args) {
+        String dateStr = "12 十月 2018";
+        SimpleDateFormat df = new SimpleDateFormat("dd MMM yyyy", Locale.SIMPLIFIED_CHINESE);
+        Date d = null;
+        try {
+            d = df.parse(dateStr);
+            System.out.println(d);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
 //        SimpleDateFormat dateformat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
 //        SimpleDateFormat dateformat2 = new SimpleDateFormat("");
 //        String dateStr =

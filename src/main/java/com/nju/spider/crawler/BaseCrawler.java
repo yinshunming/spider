@@ -6,9 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class BaseCrawler {
     public abstract String getCrawlName();
 
+    public abstract long getIntervalTime();
+
     public abstract void crawl();
 
-    public abstract long getIntervalTime();
+    public boolean needProxyToDownload() {
+        return false;
+    }
 
     public void run() {
         try {
