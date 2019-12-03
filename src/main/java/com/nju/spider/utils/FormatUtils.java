@@ -45,8 +45,8 @@ public class FormatUtils {
     }
 
     public  static void main(String [] args) {
-        String dateStr = "12 十月 2018";
-        SimpleDateFormat df = new SimpleDateFormat("dd MMM yyyy", Locale.SIMPLIFIED_CHINESE);
+        String dateStr = "5月 2019";
+        SimpleDateFormat df = new SimpleDateFormat("mm月 yyyy", Locale.SIMPLIFIED_CHINESE);
         Date d = null;
         try {
             d = df.parse(dateStr);

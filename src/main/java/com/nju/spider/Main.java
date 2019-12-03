@@ -1,10 +1,7 @@
 package com.nju.spider;
 
 import com.nju.spider.bean.Report;
-import com.nju.spider.crawler.AccentureCrawler;
-import com.nju.spider.crawler.BaseCrawler;
-import com.nju.spider.crawler.DeloitteCnCrawler;
-import com.nju.spider.crawler.GartnerReportCrawler;
+import com.nju.spider.crawler.*;
 import com.nju.spider.download.DownloadStrategy;
 import com.nju.spider.download.DownloadTask;
 
@@ -29,6 +26,7 @@ public class Main {
         crawlerList.add(new GartnerReportCrawler());
         crawlerList.add(new AccentureCrawler());
         crawlerList.add(new DeloitteCnCrawler());
+        crawlerList.add(new PwccnCrawler());
 
         ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {
