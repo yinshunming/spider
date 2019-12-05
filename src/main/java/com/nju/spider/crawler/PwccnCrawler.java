@@ -72,7 +72,7 @@ public class PwccnCrawler extends BaseCrawler{
                     String industryHref = baseUrl + industryTagNode.getAttributeByName("href");
                     String industryName = industryTagNode.getText().toString().trim();
                     String resIndustry = HttpUtils.doGetWithRetryUsingProxy(industryHref, retryTimes);
-                    TagNode industryNode = MyHtmlCleaner.clean(industryName);
+                    TagNode industryNode = MyHtmlCleaner.clean(resIndustry);
                     Object [] viewMoreButtonObs = industryNode.evaluateXPath("//a[@ng-disabled='contentList.showLoading']/@href");
                     if (viewMoreButtonObs.length > 0) {
                         //此页pdf比较多，用查看全部按钮的链接找到文章
@@ -84,7 +84,7 @@ public class PwccnCrawler extends BaseCrawler{
                             try {
                                 TagNode articleTagNode = (TagNode) articleTagNodeOb;
                                 Report report = getReportInfoFromIndexPage(articleTagNode);
-                                report.setIndustryName(resIndustry);
+                                report.setIndustryName(industryName);
                                 report.setIndexUrl(articlePubUrl);
                                 reportList.add(report);
                             } catch (Exception ex) {
@@ -98,7 +98,7 @@ public class PwccnCrawler extends BaseCrawler{
                             try {
                                 TagNode articleTagNode = (TagNode) articleOb;
                                 Report report = getReportInfoFromIndexPage(articleTagNode);
-                                report.setIndustryName(resIndustry);
+                                report.setIndustryName(industryName);
                                 report.setIndexUrl(industryHref);
                                 reportList.add(report);
                             } catch (Exception ex) {
