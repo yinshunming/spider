@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class DeloitteCnCrawler extends BaseCrawler{
     private static final String orgName = "DeloitteChina";
-    private static final int retryTimes = 5;
+    private static final int retryTimes = 15;
 
     private static final long intervalTime = 8 * 3600 * 1000;  //8h间隔抓取时间
 
@@ -81,9 +81,6 @@ public class DeloitteCnCrawler extends BaseCrawler{
                             String publishDateStr = publishDateObs[0].toString().trim();
                             publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
                         }
-
-
-                        articleUrl = "https://www2.deloitte.com/cn/zh/pages/about-deloitte/articles/pr-china-innovation-ecosystem-development-report-2019.html";
 
                         String res2 = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
                         TagNode articleNode = MyHtmlCleaner.clean(res2);

@@ -22,7 +22,7 @@ import java.util.Locale;
 @Slf4j
 public class PwccnCrawler extends BaseCrawler{
     private static final String orgName = "pwccn";
-    private static final int retryTimes = 5;
+    private static final int retryTimes = 15;
     private static final long intervalTime = 6 * 3600 * 1000;  //6h间隔抓取时间
 
     //一级页，获取行业名称
