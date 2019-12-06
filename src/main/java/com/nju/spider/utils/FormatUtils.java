@@ -45,15 +45,18 @@ public class FormatUtils {
     }
 
     public  static void main(String [] args) {
-        String dateStr = "5月 2019";
-        SimpleDateFormat df = new SimpleDateFormat("mm月 yyyy", Locale.SIMPLIFIED_CHINESE);
-        Date d = null;
-        try {
-            d = df.parse(dateStr);
-            System.out.println(d);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        String str = "《中国创新崛起——中国创新生态发展报告2019》";
+        String res = str.replaceAll("[《》<<>>]", "");
+        System.out.println(res);
+//        String dateStr = "5月 2019";
+//        SimpleDateFormat df = new SimpleDateFormat("mm月 yyyy", Locale.SIMPLIFIED_CHINESE);
+//        Date d = null;
+//        try {
+//            d = df.parse(dateStr);
+//            System.out.println(d);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
 
 //        SimpleDateFormat dateformat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
 //        SimpleDateFormat dateformat2 = new SimpleDateFormat("");

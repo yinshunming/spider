@@ -5,7 +5,9 @@ import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
+import com.nju.spider.utils.XpathUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.htmlcleaner.TagNode;
 
 import java.text.SimpleDateFormat;
@@ -98,15 +100,11 @@ public class DeloitteCnCrawler extends BaseCrawler{
                                 }
                             }
 
-                            //第二种方式，直接在正文中找到第一个书名号的文字，作为title，可能误判
+                            //第二种方式，直接在正文中找到第一个链接的文字，作为title，可能误判
                             if (title == null) {
-                                Object[] title2Objs = articleNode.evaluateXPath("//div[@class='contentpagecolctrl section']//a/text()");
-                                if (title2Objs.length > 0) {
-                                    String title2All = title1Objs[0].toString();
-                                    Matcher matcher2 = titlePattern.matcher(title2All);
-                                    if (matcher2.find()) {
-                                        title = matcher2.group(1);
-                                    }
+                                String title2 = XpathUtils.getStringFromXpath(articleTagNode, "//div[@class='contentpagecolctrl section']//a/text()");
+                                if (StringUtils.isNotBlank(title2)) {
+                                    title = title2.replaceAll("[《》<<>>]", "");
                                 }
                             }
 

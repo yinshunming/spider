@@ -47,7 +47,7 @@ public class XpathUtils {
                 }
             }
         } catch (XPatherException e) {
-            log.error("getting string from xpath encounts error ");
+            log.error("getting string from xpath encounts error ", e);
         }
 
         return ret;
