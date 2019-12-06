@@ -82,6 +82,9 @@ public class DeloitteCnCrawler extends BaseCrawler{
                             publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
                         }
 
+
+                        articleUrl = "https://www2.deloitte.com/cn/zh/pages/about-deloitte/articles/pr-china-innovation-ecosystem-development-report-2019.html";
+
                         String res2 = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
                         TagNode articleNode = MyHtmlCleaner.clean(res2);
                         Object [] downloadHrefs = articleNode.evaluateXPath("//div[@class='downloadpromo section']//a/@href");
@@ -102,7 +105,7 @@ public class DeloitteCnCrawler extends BaseCrawler{
 
                             //第二种方式，直接在正文中找到第一个链接的文字，作为title，可能误判
                             if (title == null) {
-                                String title2 = XpathUtils.getStringFromXpath(articleTagNode, "//div[@class='contentpagecolctrl section']//a/text()");
+                                String title2 = XpathUtils.getStringFromXpath(articleNode, "//div[@class='contentpagecolctrl section']//a/text()");
                                 if (StringUtils.isNotBlank(title2)) {
                                     title = title2.replaceAll("[《》<<>>]", "");
                                 }
