@@ -2,6 +2,7 @@ package com.nju.spider.db;
 
 import com.nju.spider.bean.Report;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -43,6 +44,9 @@ public class ReportDaoUtils {
 
     public static void insertReports(List<Report> reports) {
         for (Report report : reports) {
+            if (StringUtils.isBlank(report.getUrl())) {
+                continue;
+            }
             Connection conn = null;
             PreparedStatement ps1 = null;
             ResultSet r1 = null;

@@ -5,10 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nju.spider.bean.Report;
 import com.nju.spider.db.ReportDaoUtils;
-import com.nju.spider.utils.FormatUtils;
-import com.nju.spider.utils.HttpUtils;
-import com.nju.spider.utils.MyHtmlCleaner;
-import com.nju.spider.utils.XpathUtils;
+import com.nju.spider.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
@@ -59,7 +56,6 @@ public class PwccnCrawler extends BaseCrawler{
 
     @Override
     public void crawl() {
-
         try {
             String resIndex = HttpUtils.doGetWithRetryUsingProxy(firstIndex, retryTimes);
             TagNode indexNode = MyHtmlCleaner.clean(resIndex);
@@ -71,15 +67,18 @@ public class PwccnCrawler extends BaseCrawler{
                     TagNode industryTagNode = (TagNode) industryEl;
                     String industryHref = baseUrl + industryTagNode.getAttributeByName("href");
                     String industryName = industryTagNode.getText().toString().trim();
-                    String resIndustry = HttpUtils.doGetWithRetryUsingProxy(industryHref, retryTimes);
+
+                    //此处是js生成的html，用模拟浏览器才可以正确的找到dom tree
+                    String resIndustry = ChromeUtils.doChromeCrawlWithRetryTimesUsingProxy(industryHref, retryTimes);
+                    //String resIndustry = HttpUtils.doGetWithRetryUsingProxy(industryHref, retryTimes);
                     TagNode industryNode = MyHtmlCleaner.clean(resIndustry);
                     Object [] viewMoreButtonObs = industryNode.evaluateXPath("//a[@ng-disabled='contentList.showLoading']/@href");
                     if (viewMoreButtonObs.length > 0) {
                         //此页pdf比较多，用查看全部按钮的链接找到文章
                         String articlePubUrl = (String) viewMoreButtonObs[0];
-                        String articlePubRes = HttpUtils.doGetWithRetryUsingProxy(articlePubUrl, retryTimes);
+                        String articlePubRes = ChromeUtils.doChromeCrawlWithRetryTimesUsingProxy(articlePubUrl, retryTimes);
                         TagNode articlePubTagNode = MyHtmlCleaner.clean(articlePubRes);
-                        Object [] articleTagNodes = articlePubTagNode.evaluateXPath("//div[@class='row collectionv2__content']//article/a");
+                        Object [] articleTagNodes = articlePubTagNode.evaluateXPath("//div[@class='row collectionv2__content']//article");
                         for (Object articleTagNodeOb : articleTagNodes) {
                             try {
                                 TagNode articleTagNode = (TagNode) articleTagNodeOb;
@@ -133,7 +132,7 @@ public class PwccnCrawler extends BaseCrawler{
                         String publishDateStr = elJO.getString("publishDate");
                         Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
                         String title = elJO.getString("title");
-                        String pdfUrl = getPdfUrlFromArticlePage(articleUrl);
+                        String pdfUrl = baseUrl + getPdfUrlFromArticlePage(articleUrl);
 
                         Report report = new Report();
                         report.setTitle(title);
@@ -141,13 +140,15 @@ public class PwccnCrawler extends BaseCrawler{
                         report.setPublishTime(publishDate);
                         report.setArticleUrl(articleUrl);
                         report.setIndexUrl(historyUrlToCrawl);
+                        report.setOrgName(orgName);
                         reportList.add(report);
                     } catch (Exception ex) {
                         log.error("dealing with article encounts error ", ex);
                     }
                 }
 
-                ReportDaoUtils.insertReports(reportList);
+                System.out.println(reportList);
+//                ReportDaoUtils.insertReports(reportList);
             } catch (Exception ex) {
                 log.error("dealing to find index encounts error ", ex);
             }
@@ -159,12 +160,13 @@ public class PwccnCrawler extends BaseCrawler{
         String publishDateStr = XpathUtils.getStringFromXpath(tagNode, "//a//p//time/text()");
         Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
         String title = XpathUtils.getStringFromXpath(tagNode, "//a//h4/span/text()");
-        String pdfUrl = getPdfUrlFromArticlePage(articleHref);
+        String pdfUrl = baseUrl + getPdfUrlFromArticlePage(articleHref);
         Report report = new Report();
         report.setPublishTime(publishDate);
         report.setUrl(pdfUrl);
         report.setTitle(title);
         report.setArticleUrl(articleHref);
+        report.setOrgName(orgName);
         return report;
     }
 
