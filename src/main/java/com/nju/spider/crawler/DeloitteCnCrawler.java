@@ -124,7 +124,7 @@ public class DeloitteCnCrawler extends BaseCrawler{
                     }
                 }
 
-//                ReportDaoUtils.insertReports(reportList);
+                ReportDaoUtils.insertReports(reportList);
             } catch (Exception ex) {
                 log.error("crawling " + historyUrlToCrawl + " encounts error", ex);
             }

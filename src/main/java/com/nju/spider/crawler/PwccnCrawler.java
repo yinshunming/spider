@@ -147,8 +147,7 @@ public class PwccnCrawler extends BaseCrawler{
                     }
                 }
 
-                System.out.println(reportList);
-//                ReportDaoUtils.insertReports(reportList);
+                ReportDaoUtils.insertReports(reportList);
             } catch (Exception ex) {
                 log.error("dealing to find index encounts error ", ex);
             }
