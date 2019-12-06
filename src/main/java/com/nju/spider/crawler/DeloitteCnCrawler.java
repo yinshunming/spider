@@ -59,73 +59,82 @@ public class DeloitteCnCrawler extends BaseCrawler{
 
     @Override
     public void crawl() {
-
+        //爬新闻稿
         for (int i = 1; i <= 41; i++) {
-
             String historyUrlToCrawl = historyIndexUrl + i;
-            try {
-                log.info("starting to crawl url: " + historyUrlToCrawl);
-                String res = HttpUtils.doGetWithRetryUsingProxy(historyUrlToCrawl, retryTimes);
-                TagNode rootNode = MyHtmlCleaner.clean(res);
+            doCrawl(historyUrlToCrawl);
+        }
+
+        //爬文章
+        for (int i = 1; i <= 123; i++) {
+            String historyUrlToCrawl = history2IndexUrl + i;
+            doCrawl(historyUrlToCrawl);
+        }
+    }
+
+    private void doCrawl(String historyUrlToCrawl) {
+        try {
+            log.info("starting to crawl url: " + historyUrlToCrawl);
+            String res = HttpUtils.doGetWithRetryUsingProxy(historyUrlToCrawl, retryTimes);
+            TagNode rootNode = MyHtmlCleaner.clean(res);
 //                Object [] articleUrls = rootNode.evaluateXPath("//ul//li[@class='press-release']//h2//a//@href");
-                Object [] articleElements = rootNode.evaluateXPath("//div[@class='release-text-container']");
-                List<Report> reportList = new ArrayList<>();
-                for (Object articleEOb : articleElements) {
-                    try {
-                        TagNode articleTagNode = (TagNode) articleEOb;
-                        Object[] articleUrlObs = articleTagNode.evaluateXPath("//h2//a/@href");
-                        String articleUrl = baseUrl + articleUrlObs[0];
-                        Object[] publishDateObs = articleTagNode.evaluateXPath("//p[@class='release-date']/text()");
-                        Date publishDate = null;
-                        if (publishDateObs != null && publishDateObs.length > 0) {
-                            String publishDateStr = publishDateObs[0].toString().trim();
-                            publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
-                        }
-
-                        String res2 = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
-                        TagNode articleNode = MyHtmlCleaner.clean(res2);
-                        Object [] downloadHrefs = articleNode.evaluateXPath("//div[@class='downloadpromo section']//a/@href");
-
-                        if (downloadHrefs.length > 0) {
-                            String url = baseUrl + downloadHrefs[0];
-
-                            String title = null;
-                            Object[] title1Objs = articleNode.evaluateXPath("//div[@class='downloadpromo section']//button/text()");  //结合正则表达式
-
-                            if (title1Objs.length > 0) {
-                                String title1All = title1Objs[0].toString();
-                                Matcher matcher1 = titlePattern.matcher(title1All);
-                                if (matcher1.find()) {
-                                    title = matcher1.group(1);
-                                }
-                            }
-
-                            //第二种方式，直接在正文中找到第一个链接的文字，作为title，可能误判
-                            if (title == null) {
-                                String title2 = XpathUtils.getStringFromXpath(articleNode, "//div[@class='contentpagecolctrl section']//a/text()");
-                                if (StringUtils.isNotBlank(title2)) {
-                                    title = title2.replaceAll("[《》<<>>]", "");
-                                }
-                            }
-
-                            Report report = new Report();
-                            report.setPublishTime(publishDate);
-                            report.setUrl(url);
-                            report.setArticleUrl(articleUrl);
-                            report.setIndexUrl(historyUrlToCrawl);
-                            report.setOrgName(orgName);
-                            report.setTitle(title);
-                            reportList.add(report);
-                        }
-                    } catch (Exception ex) {
-                        log.error("dealing article elements encounts errpr", ex);
+            Object [] articleElements = rootNode.evaluateXPath("//div[@class='release-text-container']");
+            List<Report> reportList = new ArrayList<>();
+            for (Object articleEOb : articleElements) {
+                try {
+                    TagNode articleTagNode = (TagNode) articleEOb;
+                    Object[] articleUrlObs = articleTagNode.evaluateXPath("//h2//a/@href");
+                    String articleUrl = baseUrl + articleUrlObs[0];
+                    Object[] publishDateObs = articleTagNode.evaluateXPath("//p[@class='release-date']/text()");
+                    Date publishDate = null;
+                    if (publishDateObs != null && publishDateObs.length > 0) {
+                        String publishDateStr = publishDateObs[0].toString().trim();
+                        publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
                     }
-                }
 
-                ReportDaoUtils.insertReports(reportList);
-            } catch (Exception ex) {
-                log.error("crawling " + historyUrlToCrawl + " encounts error", ex);
+                    String res2 = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
+                    TagNode articleNode = MyHtmlCleaner.clean(res2);
+                    Object [] downloadHrefs = articleNode.evaluateXPath("//div[@class='downloadpromo section']//a/@href");
+
+                    if (downloadHrefs.length > 0) {
+                        String url = baseUrl + downloadHrefs[0];
+
+                        String title = null;
+                        Object[] title1Objs = articleNode.evaluateXPath("//div[@class='downloadpromo section']//button/text()");  //结合正则表达式
+
+                        if (title1Objs.length > 0) {
+                            String title1All = title1Objs[0].toString();
+                            Matcher matcher1 = titlePattern.matcher(title1All);
+                            if (matcher1.find()) {
+                                title = matcher1.group(1);
+                            }
+                        }
+
+                        //第二种方式，直接在正文中找到第一个链接的文字，作为title，可能误判
+                        if (title == null) {
+                            String title2 = XpathUtils.getStringFromXpath(articleNode, "//div[@class='contentpagecolctrl section']//a/text()");
+                            if (StringUtils.isNotBlank(title2)) {
+                                title = title2.replaceAll("[《》<<>>]", "");
+                            }
+                        }
+
+                        Report report = new Report();
+                        report.setPublishTime(publishDate);
+                        report.setUrl(url);
+                        report.setArticleUrl(articleUrl);
+                        report.setIndexUrl(historyUrlToCrawl);
+                        report.setOrgName(orgName);
+                        report.setTitle(title);
+                        reportList.add(report);
+                    }
+                } catch (Exception ex) {
+                    log.error("dealing article elements encounts errpr", ex);
+                }
             }
+
+            ReportDaoUtils.insertReports(reportList);
+        } catch (Exception ex) {
+            log.error("crawling " + historyUrlToCrawl + " encounts error", ex);
         }
     }
 }
