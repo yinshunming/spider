@@ -1,6 +1,7 @@
 package com.nju.spider.crawler;
 
 import com.nju.spider.bean.Report;
+import com.nju.spider.db.JDBCUtils;
 import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
@@ -114,7 +115,7 @@ public class DeloitteCnCrawler extends BaseCrawler{
                         if (title == null) {
                             String title2 = XpathUtils.getStringFromXpath(articleNode, "//div[@class='contentpagecolctrl section']//a/text()");
                             if (StringUtils.isNotBlank(title2)) {
-                                title = title2.replaceAll("[《》<<>>]", "");
+                                title = title2.replaceAll("[《》<<>>]", "").trim();
                             }
                         }
 
@@ -136,5 +137,37 @@ public class DeloitteCnCrawler extends BaseCrawler{
         } catch (Exception ex) {
             log.error("crawling " + historyUrlToCrawl + " encounts error", ex);
         }
+    }
+
+
+    public static void updateTitlesOfInValidate() {
+        List<Report> reportList = ReportDaoUtils.getDeloitteCnCrawlerReportListToUpdate();
+        for (Report report : reportList) {
+            String articleUrl = report.getArticleUrl();
+            String res = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
+            String title1 = XpathUtils.getStringFromXpath(res, "//div[@id='article-title']//h1/text()");
+            String title2 = XpathUtils.getStringFromXpath(res, "//div[@id='article-title']//h2/text()");
+            String newTitle = "";
+
+            if (StringUtils.isNotBlank(title1)) {
+                newTitle = title1;
+            }
+
+            if (StringUtils.isNotBlank(title2)) {
+                if (StringUtils.isNotBlank(newTitle)) {
+                    newTitle = newTitle + "-" + title2;
+                } else {
+                    newTitle = title2;
+                }
+            }
+
+            System.out.println(newTitle);
+
+            ReportDaoUtils.updateDeloitteCnTitle(newTitle, report.getId());
+        }
+    }
+
+    public static void main(String [] args) {
+        DeloitteCnCrawler.updateTitlesOfInValidate();
     }
 }

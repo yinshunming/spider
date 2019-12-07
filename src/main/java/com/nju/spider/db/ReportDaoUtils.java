@@ -114,4 +114,48 @@ public class ReportDaoUtils {
             JDBCUtils.close(p, conn);
         }
     }
+
+    public static void updateDeloitteCnTitle(String newTitle, int id) {
+        Connection conn = null;
+        PreparedStatement p = null;
+        try {
+            conn = JDBCUtils.getConn();
+            String sql = "UPDATE report SET title = ? WHERE id = ?";
+            p = conn.prepareStatement(sql);
+            p.setString(1, newTitle);
+            p.setInt(2, id);
+            p.executeUpdate();
+        } catch (Exception ex) {
+            log.error("updating status encounts error", ex);
+        } finally {
+            JDBCUtils.close(p, conn);
+        }
+    }
+
+    public static List<Report> getDeloitteCnCrawlerReportListToUpdate() {
+        String sql = "SELECT id, title, articleUrl FROM test.report where org_name = 'DeloitteChina' and (title = null or title like '%       ');";
+
+        List<Report> reports = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet r = null;
+        try {
+
+            conn = JDBCUtils.getConn();
+            ps = conn.prepareStatement(sql);
+            r = ps.executeQuery();
+            while (r.next()) {
+                Report report = new Report();
+                report.setId(r.getInt("id"));
+                report.setTitle(r.getString("title"));
+                report.setArticleUrl(r.getString("articleUrl"));
+                reports.add(report);
+            }
+        } catch (Exception ex) {
+            log.error("inserting report into db encounts error ", ex);
+        } finally {
+            JDBCUtils.close(r, ps, conn);
+        }
+        return reports;
+    }
 }

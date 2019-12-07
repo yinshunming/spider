@@ -25,6 +25,7 @@ public class XpathUtils {
                 } else {
                     ret = objs[0].toString();
                 }
+                ret = ret.trim();
             }
         } catch (XPatherException e) {
             log.error("getting string from xpath encounts error ");

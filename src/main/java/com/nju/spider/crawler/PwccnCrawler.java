@@ -134,11 +134,11 @@ public class PwccnCrawler extends BaseCrawler{
 
 
         //从研究与洞察下载的pdf，有部分和行业中重合，先下行业，再用这边补充
-        int pageMax = 41;
+        int pageMax = 40;
         if (!historyCrawl) {
             pageMax = 0;
         }
-        for (int i = 0; i <= 40; i+=8) {
+        for (int i = 0; i <= pageMax; i+=8) {
             String historyUrlToCrawl = historyIndexUrl2 + i;
             try {
                 String res = HttpUtils.doGetWithRetryUsingProxy(historyUrlToCrawl, retryTimes);
