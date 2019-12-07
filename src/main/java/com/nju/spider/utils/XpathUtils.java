@@ -1,8 +1,17 @@
 package com.nju.spider.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.htmlcleaner.CleanerProperties;
+import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
+import org.w3c.dom.Document;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @ClassName XpathUtils
@@ -14,25 +23,72 @@ import org.htmlcleaner.XPatherException;
 @Slf4j
 public class XpathUtils {
 
-    public static String getStringFromXpath(String res, String xpath) {
+    public static String getStringFromXpathUsingContains(TagNode tagNode, String xpath) {
+        String ret = null;
+        try {
+            Document docTmpContent = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
+            XPath newXpath = XPathFactory.newInstance().newXPath();
+            ret = newXpath.evaluate(xpath, docTmpContent);
+        } catch (Exception e) {
+            log.error("getting string from xpath encounts error ");
+        }
+        return ret;
+    }
+
+
+    public static String getStringFromXpathUsingContains(String res, String xpath) {
         String ret = null;
         try {
             TagNode tagNode = MyHtmlCleaner.clean(res);
-            Object [] objs = tagNode.evaluateXPath(xpath);
-            if (objs.length > 0) {
-                if (objs[0] instanceof String) {
-                    ret = (String) objs[0];
-                } else {
-                    ret = objs[0].toString();
-                }
-                ret = ret.trim();
-            }
-        } catch (XPatherException e) {
+            ret = getStringFromXpathUsingContains(tagNode, xpath);
+        } catch (Exception e) {
             log.error("getting string from xpath encounts error ");
         }
 
         return ret;
     }
+
+    public static List<String> getStringListFromXpath(String res, String xpath) {
+        List<String> retList = new ArrayList<>();
+        try {
+            TagNode tagNode = MyHtmlCleaner.clean(res);
+            retList = getStringListFromXpath(tagNode, xpath);
+        } catch (Exception ex) {
+            log.error("getting string list from xpath encounts error ", ex);
+        }
+        return retList;
+    }
+
+    public static List<String> getStringListFromXpath(TagNode tagNode, String xpath) {
+        List<String> retList = new ArrayList<>();
+        try {
+            Object[] objs = tagNode.evaluateXPath(xpath);
+            for (int i = 0; i < objs.length; i++) {
+                if (objs[i] instanceof String) {
+                    retList.add(((String)objs[i]).trim());
+                } else {
+                    retList.add(objs[i].toString().trim());
+                }
+            }
+        } catch (Exception ex) {
+            log.error("getting string list from xpath encounts error ", ex);
+        }
+        return retList;
+    }
+
+    public static String getStringFromXpath(String res, String xpath) {
+        String ret = null;
+        try {
+            TagNode tagNode = MyHtmlCleaner.clean(res);
+            ret = getStringFromXpath(tagNode, xpath);
+        } catch (Exception e) {
+            log.error("getting string from xpath encounts error ");
+        }
+
+        return ret;
+    }
+
+
 
 
     public static String getStringFromXpath(TagNode tagNode , String xpath) {
@@ -46,6 +102,7 @@ public class XpathUtils {
                 } else {
                     ret = objs[0].toString();
                 }
+                ret = ret.trim();
             }
         } catch (XPatherException e) {
             log.error("getting string from xpath encounts error ", e);
@@ -53,4 +110,5 @@ public class XpathUtils {
 
         return ret;
     }
+
 }

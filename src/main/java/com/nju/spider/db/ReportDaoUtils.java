@@ -133,7 +133,7 @@ public class ReportDaoUtils {
     }
 
     public static List<Report> getDeloitteCnCrawlerReportListToUpdate() {
-        String sql = "SELECT id, title, articleUrl FROM test.report where org_name = 'DeloitteChina' and (title = null or title like '%       ');";
+        String sql = "SELECT id, title, articleUrl FROM test.report where org_name = 'DeloitteChina' and title is null";
 
         List<Report> reports = new ArrayList<>();
         Connection conn = null;
