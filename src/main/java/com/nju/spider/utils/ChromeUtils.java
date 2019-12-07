@@ -59,7 +59,7 @@ public class ChromeUtils {
             ChromeOptions chromeOptions = new ChromeOptions();
             //设置为 headless 模式 （必须）
             if (usingProxy) {
-                String proxy_str = "localhost:8589";
+                String proxy_str = HttpUtils.proxyHost + ":" + HttpUtils.proxyPort;
                 Proxy proxy = new Proxy().setHttpProxy(proxy_str).setSslProxy(proxy_str);
                 chromeOptions.setProxy(proxy);
             }

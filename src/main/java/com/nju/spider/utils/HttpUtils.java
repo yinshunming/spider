@@ -27,9 +27,13 @@ public class HttpUtils {
 
     private static final Pattern fileNamePattern = Pattern.compile("filename=\"(.*)\"");
 
+    public static final String proxyHost = "localhost";
+
+    public static final Integer proxyPort = 8589;
+
 
     public static HttpHost getProxy() {
-        HttpHost proxy = new HttpHost("localhost", 8589, "http");
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
         return proxy;
     }
 
