@@ -60,13 +60,13 @@ public class DeloitteCnCrawler extends BaseCrawler{
     @Override
     public void crawl() {
         //爬新闻稿
-        for (int i = 1; i <= 41; i++) {
+        for (int i = 1; i <= 1; i++) {
             String historyUrlToCrawl = historyIndexUrl + i;
             doCrawl(historyUrlToCrawl);
         }
 
         //爬文章
-        for (int i = 1; i <= 123; i++) {
+        for (int i = 1; i <= 1; i++) {
             String historyUrlToCrawl = history2IndexUrl + i;
             doCrawl(historyUrlToCrawl);
         }

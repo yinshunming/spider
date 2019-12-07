@@ -33,34 +33,34 @@ public class Main {
             es.scheduleWithFixedDelay(baseCrawler::run, initDelay, baseCrawler.getIntervalTime(), TimeUnit.MILLISECONDS);
         }
 
-//        //查看是否需要使用proxy去下载pdf
-//        List<String> needToUsingProxyDownloadOrgName = new ArrayList<>();
-//        for (BaseCrawler baseCrawler : crawlerList) {
-//            if (baseCrawler.needProxyToDownload()) {
-//                needToUsingProxyDownloadOrgName.add(baseCrawler.getCrawlName());
-//            }
-//        }
-//
-//        //TODO 抽出来做一个类
-//        ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
-//        while(true) {
-//            List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
-//            //乱序提交，防止饥饿情况(pdf下载时间很长)发生
-//            Collections.shuffle(reportToDowloadList);
-//
-//            for (Report report : reportToDowloadList) {
-//                //这边可以做个策略
-//                if (needToUsingProxyDownloadOrgName.contains(report.getOrgName())) {
-//                    downloadEs.submit(new DownloadTask(report, true));
-//                } else {
-//                    downloadEs.submit(new DownloadTask(report, false));
-//                }
-//            }
-//            try {
-//                Thread.sleep(downloadSleepInterval);
-//            } catch (InterruptedException e) {
-//            }
-//        }
+        //查看是否需要使用proxy去下载pdf
+        List<String> needToUsingProxyDownloadOrgName = new ArrayList<>();
+        for (BaseCrawler baseCrawler : crawlerList) {
+            if (baseCrawler.needProxyToDownload()) {
+                needToUsingProxyDownloadOrgName.add(baseCrawler.getCrawlName());
+            }
+        }
+
+        //TODO 抽出来做一个类
+        ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
+        while(true) {
+            List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
+            //乱序提交，防止饥饿情况(pdf下载时间很长)发生
+            Collections.shuffle(reportToDowloadList);
+
+            for (Report report : reportToDowloadList) {
+                //这边可以做个策略
+                if (needToUsingProxyDownloadOrgName.contains(report.getOrgName())) {
+                    downloadEs.submit(new DownloadTask(report, true));
+                } else {
+                    downloadEs.submit(new DownloadTask(report, false));
+                }
+            }
+            try {
+                Thread.sleep(downloadSleepInterval);
+            } catch (InterruptedException e) {
+            }
+        }
 
     }
 }

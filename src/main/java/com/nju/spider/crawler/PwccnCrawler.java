@@ -35,8 +35,9 @@ public class PwccnCrawler extends BaseCrawler{
 
     private static final String baseUrl = "https://www.pwccn.com";
 
-    private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("mm月 yyyy", Locale.SIMPLIFIED_CHINESE));
+    private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MM月 yyyy", Locale.SIMPLIFIED_CHINESE));
 
+    private static final boolean historyCrawl = true;
 
     @Override
     public String getCrawlName() {
@@ -73,25 +74,8 @@ public class PwccnCrawler extends BaseCrawler{
                     //String resIndustry = HttpUtils.doGetWithRetryUsingProxy(industryHref, retryTimes);
                     TagNode industryNode = MyHtmlCleaner.clean(resIndustry);
                     Object [] viewMoreButtonObs = industryNode.evaluateXPath("//a[@ng-disabled='contentList.showLoading']/@href");
-                    if (viewMoreButtonObs.length > 0) {
-                        //此页pdf比较多，用查看全部按钮的链接找到文章
-                        String articlePubUrl = (String) viewMoreButtonObs[0];
-                        String articlePubRes = ChromeUtils.doChromeCrawlWithRetryTimesUsingProxy(articlePubUrl, retryTimes);
-                        TagNode articlePubTagNode = MyHtmlCleaner.clean(articlePubRes);
-                        Object [] articleTagNodes = articlePubTagNode.evaluateXPath("//div[@class='row collectionv2__content']//article");
-                        for (Object articleTagNodeOb : articleTagNodes) {
-                            try {
-                                TagNode articleTagNode = (TagNode) articleTagNodeOb;
-                                Report report = getReportInfoFromIndexPage(articleTagNode);
-                                report.setIndustryName(industryName);
-                                report.setIndexUrl(articlePubUrl);
-                                reportList.add(report);
-                            } catch (Exception ex) {
-                                log.error("getting from pubs page encounts error ", ex);
-                            }
-                        }
-                    } else {
-                        //此页pdf比较少没有查看全部按钮
+                    if (!historyCrawl) {
+                        //爬更新只要这页就可以
                         Object [] articleObs = industryNode.evaluateXPath("//article");
                         for (Object articleOb : articleObs) {
                             try {
@@ -102,6 +86,39 @@ public class PwccnCrawler extends BaseCrawler{
                                 reportList.add(report);
                             } catch (Exception ex) {
                                 log.error("getting from index page encounts error ", ex);
+                            }
+                        }
+                    } else {
+                        if (viewMoreButtonObs.length > 0) {
+                            //此页pdf比较多，用查看全部按钮的链接找到文章
+                            String articlePubUrl = (String) viewMoreButtonObs[0];
+                            String articlePubRes = ChromeUtils.doChromeCrawlWithRetryTimesUsingProxy(articlePubUrl, retryTimes);
+                            TagNode articlePubTagNode = MyHtmlCleaner.clean(articlePubRes);
+                            Object[] articleTagNodes = articlePubTagNode.evaluateXPath("//div[@class='row collectionv2__content']//article");
+                            for (Object articleTagNodeOb : articleTagNodes) {
+                                try {
+                                    TagNode articleTagNode = (TagNode) articleTagNodeOb;
+                                    Report report = getReportInfoFromIndexPage(articleTagNode);
+                                    report.setIndustryName(industryName);
+                                    report.setIndexUrl(articlePubUrl);
+                                    reportList.add(report);
+                                } catch (Exception ex) {
+                                    log.error("getting from pubs page encounts error ", ex);
+                                }
+                            }
+                        } else {
+                            //此页pdf比较少没有查看全部按钮
+                            Object[] articleObs = industryNode.evaluateXPath("//article");
+                            for (Object articleOb : articleObs) {
+                                try {
+                                    TagNode articleTagNode = (TagNode) articleOb;
+                                    Report report = getReportInfoFromIndexPage(articleTagNode);
+                                    report.setIndustryName(industryName);
+                                    report.setIndexUrl(industryHref);
+                                    reportList.add(report);
+                                } catch (Exception ex) {
+                                    log.error("getting from index page encounts error ", ex);
+                                }
                             }
                         }
                     }
@@ -117,6 +134,10 @@ public class PwccnCrawler extends BaseCrawler{
 
 
         //从研究与洞察下载的pdf，有部分和行业中重合，先下行业，再用这边补充
+        int pageMax = 41;
+        if (!historyCrawl) {
+            pageMax = 0;
+        }
         for (int i = 0; i <= 40; i+=8) {
             String historyUrlToCrawl = historyIndexUrl2 + i;
             try {
