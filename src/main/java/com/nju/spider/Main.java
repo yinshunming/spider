@@ -27,6 +27,7 @@ public class Main {
         crawlerList.add(new AccentureCrawler());
         crawlerList.add(new DeloitteCnCrawler());
         crawlerList.add(new PwccnCrawler());
+        crawlerList.add(new MckinseyCnCrawler());
 
         ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {

@@ -1,6 +1,7 @@
 package com.nju.spider.crawler;
 
 import com.nju.spider.bean.Report;
+import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
@@ -58,39 +59,58 @@ public class MckinseyCnCrawler extends BaseCrawler{
                     String industryRes = HttpUtils.doGetWithRetry(industryHref, retryTimes);
                     TagNode industryTagNode = MyHtmlCleaner.clean(industryRes);
                     Object [] articleIndexObs = industryTagNode.evaluateXPath("//div[@class='recent-posts-content']");
+                    List<Report> reportList = new ArrayList<>();
                     for (Object articleIndexOb : articleIndexObs) {
                         try {
                             TagNode articleIndexNode = (TagNode) articleIndexOb;
                             String title = XpathUtils.getStringFromXpath(articleIndexNode, "//h4/a/text()");
                             String articleUrl = XpathUtils.getStringFromXpath(articleIndexNode, "//h4/a/@href");
-                            String publishDateStr = XpathUtils.getStringFromXpath(articleIndexNode, "//div[@class='recent-posts-content']//span[@class='date']/text()");
+                            String publishDateStr = XpathUtils.getStringFromXpath(articleIndexNode, "//span[@class='date']/text()");
                             Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
 
                             String articleRes = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
                             TagNode articleTagNode = MyHtmlCleaner.clean(articleRes);
 
-                            String authors = XpathUtils.getStringFromXpath(articleTagNode, "//article//p[@style='text-align: right;']/text()").trim().replace("作者：", "");
-                            //太长则表示取错了,置空
-                            if (authors.length() >= 50) {
-                                authors = null;
+                            String authors = XpathUtils.getStringFromXpath(articleTagNode, "//article//p[@style='text-align: right;']/text()");
+                            if (authors != null) {
+                                authors = authors.trim().replace("作者：", "");
+                                //太长则表示取错了,置空
+                                if (authors.length() >= 50) {
+                                    authors = null;
+                                }
                             }
 
-                            List<String> hrefList = XpathUtils.getStringListFromXpath(articleTagNode, "//a/@href");
+                            List<String> hrefList = XpathUtils.getStringListFromXpath(articleTagNode, "//article//div[@class='post-content']//a/@href");
                             for (String href: hrefList) {
                                 if (href.endsWith(".pdf")) {
                                     Report report = new Report();
-                                    //TODO 待填充数据
+                                    report.setUrl(href);
+                                    report.setTitle(title);
+                                    report.setAuthors(authors);
+                                    report.setArticleUrl(articleUrl);
+                                    report.setIndustryName(industryName);
+                                    report.setOrgName(orgName);
+                                    report.setIndexUrl(industryHref);
+                                    report.setPublishTime(publishDate);
+                                    report.setPublishTime(publishDate);
+                                    reportList.add(report);
                                 }
                             }
                         } catch (Exception ex) {
                             log.error("getting article href encounts error ", ex);
                         }
                     }
+                    ReportDaoUtils.insertReports(reportList);
                 } catch (Exception e) {
                     log.error("getting industry urls encounts error");
                 }
             }
         } catch (Exception e) {
         }
+
+    }
+
+    public static void main(String [] args) {
+        new MckinseyCnCrawler().crawl();
     }
 }
