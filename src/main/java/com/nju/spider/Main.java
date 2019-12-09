@@ -27,7 +27,8 @@ public class Main {
         crawlerList.add(new AccentureCrawler());
         crawlerList.add(new DeloitteCnCrawler());
         crawlerList.add(new PwccnCrawler());
-        crawlerList.add(new MckinseyCnCrawler());
+        //crawlerList.add(new MckinseyCnCrawler());
+        crawlerList.add(new KpmgCnCrawler());
 
         ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {
@@ -41,27 +42,27 @@ public class Main {
                 needToUsingProxyDownloadOrgName.add(baseCrawler.getCrawlName());
             }
         }
-
-        //TODO 抽出来做一个类
-        ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
-        while(true) {
-            List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
-            //乱序提交，防止饥饿情况(pdf下载时间很长)发生
-            Collections.shuffle(reportToDowloadList);
-
-            for (Report report : reportToDowloadList) {
-                //这边可以做个策略
-                if (needToUsingProxyDownloadOrgName.contains(report.getOrgName())) {
-                    downloadEs.submit(new DownloadTask(report, true));
-                } else {
-                    downloadEs.submit(new DownloadTask(report, false));
-                }
-            }
-            try {
-                Thread.sleep(downloadSleepInterval);
-            } catch (InterruptedException e) {
-            }
-        }
+//
+//        //TODO 抽出来做一个类
+//        ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
+//        while(true) {
+//            List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
+//            //乱序提交，防止饥饿情况(pdf下载时间很长)发生
+//            Collections.shuffle(reportToDowloadList);
+//
+//            for (Report report : reportToDowloadList) {
+//                //这边可以做个策略
+//                if (needToUsingProxyDownloadOrgName.contains(report.getOrgName())) {
+//                    downloadEs.submit(new DownloadTask(report, true));
+//                } else {
+//                    downloadEs.submit(new DownloadTask(report, false));
+//                }
+//            }
+//            try {
+//                Thread.sleep(downloadSleepInterval);
+//            } catch (InterruptedException e) {
+//            }
+//        }
 
     }
 }

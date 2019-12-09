@@ -32,7 +32,7 @@ public class MckinseyCnCrawler extends BaseCrawler{
 
     private static final String firstIndexUrl = "https://www.mckinsey.com.cn/insights/";
 
-    private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MM月 dd, yyyy", Locale.SIMPLIFIED_CHINESE));
+    private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MMM月 dd, yyyy", Locale.SIMPLIFIED_CHINESE));
 
 
     @Override
