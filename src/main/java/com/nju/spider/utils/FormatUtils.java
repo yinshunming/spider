@@ -50,10 +50,8 @@ public class FormatUtils {
 //        String str = "《中国创新崛起——中国创新生态发展报告2019》";
 //        String res = str.replaceAll("[《》<<>>]", "");
 //        System.out.println(res);
-        String dateStr = "十月 29, 2019";
-        dateStr = dateStr.replace("一", "1").replace("二", "2").replace("三", "3").replace("四", "4").replace("五", "5").replace("六", "6")
-        .replace("七", "7").replace("八", "8").replace("九", "9").replace("十", "10").replace("十一", "11").replace("十二", "12");
-        SimpleDateFormat df = new SimpleDateFormat("MM月 dd, yyyy", Locale.SIMPLIFIED_CHINESE);
+        String dateStr = "27-Nov-2019";
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy", Locale.US);
         Date d = null;
         try {
             d = df.parse(dateStr);
