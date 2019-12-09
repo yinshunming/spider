@@ -42,7 +42,7 @@ public class KpmgCnCrawler extends BaseCrawler{
 
     @Override
     public String getCrawlName() {
-        return null;
+        return orgName;
     }
 
     @Override
@@ -52,8 +52,8 @@ public class KpmgCnCrawler extends BaseCrawler{
 
     @Override
     public void crawl() {
-        //一共96页
-        for (int i = 1; i <= 96; i++) {
+        //更新只爬第一页就够了
+        for (int i = 1; i <= 1; i++) {
             try {
                 String crawlUrl = indexUrl + i;
                 log.info("start to crawl " + crawlUrl);
