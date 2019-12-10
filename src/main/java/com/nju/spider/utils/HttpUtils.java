@@ -31,10 +31,17 @@ public class HttpUtils {
 
     public static final Integer proxyPort = 8589;
 
+    private static final Integer defaultRetryTimes = 3;
+
 
     public static HttpHost getProxy() {
         HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
         return proxy;
+    }
+
+
+    public static String doGetWithRetry(String url) {
+        return doGetWithRetry(url, defaultRetryTimes);
     }
 
 
@@ -54,6 +61,10 @@ public class HttpUtils {
             }
         }
         return null;
+    }
+
+    public static String doGetWithRetryUsingProxy(String url) {
+        return doGetWithRetryUsingProxy(url, defaultRetryTimes);
     }
 
     public static String doGetWithRetryUsingProxy(String url, int retryCount) {
@@ -292,7 +303,7 @@ public class HttpUtils {
                 return true;
             }
         } catch (Exception e) {
-            log.error("download file encounts error ", e);
+            log.error("download file encounts error " + url, e);
         } finally {
             try {
                 if (httpClient != null) {

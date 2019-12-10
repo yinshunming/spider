@@ -18,14 +18,14 @@ import java.util.Locale;
 
 /**
  * @ClassName KpmgCnCrawler
- * @Description 毕马威中国爬虫
+ * @Description 毕马威中国爬虫 此网站似乎有反爬策略，大量爬取会封ip，要注意
  * @Author UPC
  * @Date 2019/12/7 17:56
  * @Version 1.0
  */
 @Slf4j
 public class KpmgCnCrawler extends BaseCrawler{
-    private static final String orgName = "MckinseyCn";
+    private static final String orgName = "KpmgCn";
     private static final int retryTimes = 5;
     private static final long intervalTime = 7 * 3600 * 1000;  //7h间隔抓取时间
 
@@ -48,6 +48,11 @@ public class KpmgCnCrawler extends BaseCrawler{
     @Override
     public long getIntervalTime() {
         return intervalTime;
+    }
+
+    @Override
+    public boolean needProxyToDownload() {
+        return true;
     }
 
     @Override

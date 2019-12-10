@@ -7,6 +7,7 @@ import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
 import com.nju.spider.utils.XpathUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
@@ -32,7 +33,7 @@ public class MckinseyCnCrawler extends BaseCrawler{
 
     private static final String firstIndexUrl = "https://www.mckinsey.com.cn/insights/";
 
-    private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MMM月 dd, yyyy", Locale.SIMPLIFIED_CHINESE));
+    private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MMM dd, yyyy", Locale.SIMPLIFIED_CHINESE));
 
 
     @Override
@@ -48,9 +49,12 @@ public class MckinseyCnCrawler extends BaseCrawler{
     @Override
     public void crawl() {
         try {
+            log.info("start to crawl " + firstIndexUrl);
             String indexRes = HttpUtils.doGetWithRetry(firstIndexUrl, retryTimes);
             TagNode indexRootTagNode = MyHtmlCleaner.clean(indexRes);
-            Object [] indexObs = indexRootTagNode.evaluateXPath("//ul[@id='menu-menu-left']//li");
+            Object [] indexObs1 = indexRootTagNode.evaluateXPath("//ul[@id='menu-menu-left']//li");
+            Object [] indexObs2 = indexRootTagNode.evaluateXPath("//ul[@id='menu-menu-right']//li");
+            Object [] indexObs =  ArrayUtils.addAll(indexObs1, indexObs2);
             for (Object indexOb : indexObs) {
                 try {
                     TagNode indexTagNode = (TagNode) indexOb;
@@ -68,7 +72,7 @@ public class MckinseyCnCrawler extends BaseCrawler{
                             String publishDateStr = XpathUtils.getStringFromXpath(articleIndexNode, "//span[@class='date']/text()");
                             Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
 
-                            String articleRes = HttpUtils.doGetWithRetryUsingProxy(articleUrl, retryTimes);
+                            String articleRes = HttpUtils.doGetWithRetry(articleUrl, retryTimes);
                             TagNode articleTagNode = MyHtmlCleaner.clean(articleRes);
 
                             String authors = XpathUtils.getStringFromXpath(articleTagNode, "//article//p[@style='text-align: right;']/text()");

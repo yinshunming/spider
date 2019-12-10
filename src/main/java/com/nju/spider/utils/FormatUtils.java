@@ -48,7 +48,7 @@ public class FormatUtils {
 //        String str = "《中国创新崛起——中国创新生态发展报告2019》";
 //        String res = str.replaceAll("[《》<<>>]", "");
 //        System.out.println(res);
-        String dateStr = "十二月 4, 2019";
+        String dateStr = "十月 29, 2019";
         SimpleDateFormat df = new SimpleDateFormat("MMM dd, yyyy", Locale.SIMPLIFIED_CHINESE);
         Date d = null;
         try {
