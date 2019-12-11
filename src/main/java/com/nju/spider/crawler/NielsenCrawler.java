@@ -8,6 +8,11 @@ package com.nju.spider.crawler;
  * @Version 1.0
  */
 public class NielsenCrawler extends BaseCrawler{
+
+    private static final String xpath = "//iframe[@class='embed-iframe']";
+
+    private static final String xpath2 = "//div[@id='download_links']//a/@href";
+
     private static final String usaUrl = "https://www.nielsen.com/us/en/insights/report/";
 
     private static final String cnUrl = "https://www.nielsen.com/cn/zh/insights/report/";
