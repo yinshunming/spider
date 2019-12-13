@@ -13,6 +13,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -280,7 +281,9 @@ public class HttpUtils {
     public static boolean doDownload(Report report, boolean useProxy) {
         String url = report.getUrl();
 
+        //.setRedirectStrategy(new DefaultRedirectStrategy()).
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+
         HttpGet httpGet = new HttpGet(url);
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).build();
         if (useProxy) {

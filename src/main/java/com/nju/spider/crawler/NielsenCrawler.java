@@ -1,5 +1,7 @@
 package com.nju.spider.crawler;
 
+import com.nju.spider.bean.Report;
+import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.MyHtmlCleaner;
@@ -10,10 +12,7 @@ import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName NielsenCrawler
@@ -31,9 +30,9 @@ public class NielsenCrawler extends BaseCrawler{
 
     private static final String usaUrl = "https://www.nielsen.com/us/en/insights/report/page/%s/";
 
-    private static final String usaUrl2 = "https://www.nielsen.com/us/en/insights/case-study/%s/";
+    private static final String usaUrl2 = "https://www.nielsen.com/us/en/insights/case-study/page/%s/";
 
-    private static final String uasUrl3 = "https://www.nielsen.com/us/en/insights/resource/%s/";
+    private static final String uasUrl3 = "https://www.nielsen.com/us/en/insights/resource/page/%s/";
 
     private static final String cnUrl = "https://www.nielsen.com/cn/zh/insights/report/page/%s/";
 
@@ -44,7 +43,6 @@ public class NielsenCrawler extends BaseCrawler{
 
 
     private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MM-dd-yyyy", Locale.US));
-
 
 
     @Override
@@ -58,39 +56,81 @@ public class NielsenCrawler extends BaseCrawler{
     }
 
     @Override
+    public boolean needProxyToDownload() {
+        return true;
+    }
+
+
+    @Override
     public void crawl() {
 
-        for (int i = 1; i <=54; i++ ) {
+        for (int i = 1; i <= 54; i++ ) {
             String historyUrlToCrawl = String.format(usaUrl, i);
-            try {
-                String res = HttpUtils.doGetWithRetryUsingProxy(usaUrl);
-                TagNode indexRootTagNode = MyHtmlCleaner.clean(res);
-                Object[] articleIndexObs = indexRootTagNode.evaluateXPath("//article//div[@class='row']//div[@class='col']");
-                for (Object articleIndexOb : articleIndexObs) {
+            doCrawl(historyUrlToCrawl);
+        }
+
+        for (int i = 1; i <= 6; i++) {
+            String historyUrlToCrawl = String.format(usaUrl2, i);
+            doCrawl(historyUrlToCrawl);
+        }
+
+        for (int i = 1; i <= 5; i++) {
+            String historyUrlToCrawl = String.format(uasUrl3, i);
+            doCrawl(historyUrlToCrawl);
+        }
+
+        for (int i = 1; i <= 3; i++) {
+            String historyUrlToCrawl = String.format(cnUrl, i);
+            doCrawl(historyUrlToCrawl);
+        }
+    }
+
+    private void doCrawl(String historyUrlToCrawl) {
+        try {
+            log.info("start to crawl " + historyUrlToCrawl);
+            String res = HttpUtils.doGetWithRetryUsingProxy(historyUrlToCrawl);
+            TagNode indexRootTagNode = MyHtmlCleaner.clean(res);
+            Object[] articleIndexObs = indexRootTagNode.evaluateXPath("//article//div[@class='row']//div[@class='col']");
+            List<Report> reportList = new ArrayList<>();
+            for (Object articleIndexOb : articleIndexObs) {
+                try {
                     TagNode articleIndexTagNode = (TagNode) articleIndexOb;
-                    String industryName = XpathUtils.getStringFromXpath(articleIndexTagNode, "//article//div[@class='row']//div[@class='col']//header//span/a/@href");
-                    String publishDateStr = XpathUtils.getStringFromXpath(articleIndexTagNode, "//article//div[@class='row']//div[@class='col']//header//time/text()");
+                    String industryName = XpathUtils.getStringFromXpath(articleIndexTagNode, "//header//span/a/text()");
+                    String publishDateStr = XpathUtils.getStringFromXpath(articleIndexTagNode, "//header//time/text()");
                     Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
-                    String title = XpathUtils.getStringFromXpath(articleIndexTagNode, "//article//div[@class='row']//div[@class='col']//h2//a/text()");
-                    String articleUrl = XpathUtils.getStringFromXpath(articleIndexTagNode, "//article//div[@class='row']//div[@class='col']//h2//a/@href");
-                    String res2 = HttpUtils.doGetWithRetry(articleUrl);
-                    String pdfUrl = XpathUtils.getStringFromXpath(res2, "//div[@id='download_links']//a/@href");
+                    String title = XpathUtils.getStringFromXpath(articleIndexTagNode, "//h2//a/text()");
+                    String articleUrl = XpathUtils.getStringFromXpath(articleIndexTagNode, "//h2//a/@href");
+                    String res2 = HttpUtils.doGetWithRetryUsingProxy(articleUrl);
+                    TagNode res2TagNode =  MyHtmlCleaner.clean(res2);
+                    String pdfUrl = XpathUtils.getStringFromXpath(res2TagNode, "//div[@id='download_links']//a/@href");
                     //此处没找到pdf的链接，则找寻另一种格式
                     if (StringUtils.isBlank(pdfUrl)) {
-                        String tmpHref = XpathUtils.getStringFromXpath(res2, "//iframe[@class='embed-iframe']/@src");
+                        String tmpHref = XpathUtils.getStringFromXpath(res2TagNode, "//iframe[@class='embed-iframe']/@src");
                         if (StringUtils.isNotBlank(tmpHref)) {
-                           String res3 = HttpUtils.doPostWithRetryUsingProxy(tmpHref, getPostContent(), getHeaders());
-                           pdfUrl = XpathUtils.getStringFromXpath(res3, "//div[@id='download_links']//a/@href");
+                            String res3 = HttpUtils.doPostWithRetryUsingProxy(tmpHref, getPostContent(), getHeaders());
+                            pdfUrl = XpathUtils.getStringFromXpath(res3, "//form//span//a/@href");
                         }
                     }
 
                     if (StringUtils.isNotBlank(pdfUrl)) {
                         //TODO 填充report
+                        Report report = new Report();
+                        report.setIndustryName(industryName);
+                        report.setTitle(title);
+                        report.setPublishTime(publishDate);
+                        report.setArticleUrl(articleUrl);
+                        report.setUrl(pdfUrl);
+                        report.setIndexUrl(historyUrlToCrawl);
+                        report.setOrgName(orgName);
+                        reportList.add(report);
                     }
+                } catch (Exception ex) {
+                    log.error("error getting article url ", ex);
                 }
-            } catch (Exception ex) {
-                log.error("error getting article indexs of url " + historyUrlToCrawl, ex);
             }
+            ReportDaoUtils.insertReports(reportList);
+        } catch (Exception ex) {
+            log.error("error getting article indexs of url " + historyUrlToCrawl, ex);
         }
     }
 
@@ -106,5 +146,9 @@ public class NielsenCrawler extends BaseCrawler{
     private static String getPostContent() {
         //目前也比较固定
         return "31782_219811pi_31782_219811=SDDF&31782_219813pi_31782_219813=dafafsd&31782_219815pi_31782_219815=12afd%40xds.com&31782_219817pi_31782_219817=dsfa&31782_219819pi_31782_219819=sadffdas&31782_219821pi_31782_219821=2278517&pi_extra_field=&_utf8=%E2%98%83&hiddenDependentFields=";
+    }
+
+    public static void main(String [] args) {
+        new NielsenCrawler().crawl();
     }
 }

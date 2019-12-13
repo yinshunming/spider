@@ -29,6 +29,7 @@ public class Main {
         crawlerList.add(new PwccnCrawler());
         crawlerList.add(new MckinseyCnCrawler());
         crawlerList.add(new KpmgCnCrawler());
+        crawlerList.add(new NielsenCrawler());
 
         ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {

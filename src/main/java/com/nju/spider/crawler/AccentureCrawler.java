@@ -137,9 +137,20 @@ public class AccentureCrawler extends BaseCrawler{
                                         "| //a[contains(@data-analytics-link-name, 'READ THE REPORT')]/@href " +
                                         "| //a[contains(@title, 'full article')]/@href ", res2Doc);
                                 if (StringUtils.isNotBlank(reportUrl)) {
+                                    if (reportUrl.endsWith(".html")) {
+                                        continue;
+                                    }
+
                                     if (reportUrl.startsWith("//")) {
                                         reportUrl = "https:" + reportUrl;
                                     }
+
+                                    if (reportUrl.startsWith("/")) {
+                                        reportUrl = "https://www.accenture.com" + reportUrl;
+                                    }
+
+
+
                                       tmpReport.setUrl(reportUrl);
                                       reportList.add(tmpReport);
 //                                        //宁愿多访问一次网络，确保确实是pdf
