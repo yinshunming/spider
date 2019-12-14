@@ -64,22 +64,22 @@ public class NielsenCrawler extends BaseCrawler{
     @Override
     public void crawl() {
 
-        for (int i = 1; i <= 54; i++ ) {
+        for (int i = 1; i <= 1; i++ ) {
             String historyUrlToCrawl = String.format(usaUrl, i);
             doCrawl(historyUrlToCrawl);
         }
 
-        for (int i = 1; i <= 6; i++) {
+        for (int i = 1; i <= 1; i++) {
             String historyUrlToCrawl = String.format(usaUrl2, i);
             doCrawl(historyUrlToCrawl);
         }
 
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 1; i++) {
             String historyUrlToCrawl = String.format(uasUrl3, i);
             doCrawl(historyUrlToCrawl);
         }
 
-        for (int i = 1; i <= 3; i++) {
+        for (int i = 1; i <= 1; i++) {
             String historyUrlToCrawl = String.format(cnUrl, i);
             doCrawl(historyUrlToCrawl);
         }
@@ -113,7 +113,6 @@ public class NielsenCrawler extends BaseCrawler{
                     }
 
                     if (StringUtils.isNotBlank(pdfUrl)) {
-                        //TODO 填充report
                         Report report = new Report();
                         report.setIndustryName(industryName);
                         report.setTitle(title);

@@ -76,6 +76,24 @@ public class XpathUtils {
         return retList;
     }
 
+
+    public static List<TagNode> getTagNodeListFromXpath(String res, String xpath) {
+        List<TagNode> retList = new ArrayList<>();
+        try {
+            TagNode tagNode = MyHtmlCleaner.clean(res);
+            Object[] objs = tagNode.evaluateXPath(xpath);
+
+            for (int i = 0; i < objs.length; i++) {
+                if (objs[i] instanceof TagNode) {
+                    retList.add((TagNode) objs[i]);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("getting string list from xpath encounts error ", ex);
+        }
+        return retList;
+    }
+
     public static String getStringFromXpath(String res, String xpath) {
         String ret = null;
         try {
