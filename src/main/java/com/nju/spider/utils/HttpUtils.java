@@ -280,6 +280,7 @@ public class HttpUtils {
 
     public static boolean doDownload(Report report, boolean useProxy) {
         String url = report.getUrl();
+        url = url.replaceAll(" ","%20").replaceAll("\\^", "5e");
 
         //.setRedirectStrategy(new DefaultRedirectStrategy()).
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();

@@ -4,10 +4,8 @@ import com.nju.spider.bean.Report;
 import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
-import com.nju.spider.utils.MyHtmlCleaner;
 import com.nju.spider.utils.XpathUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 
 import java.text.SimpleDateFormat;
@@ -27,7 +25,7 @@ import java.util.Locale;
 public class TalkingDataCrawler extends BaseCrawler{
     private static final String crawlUrlTemplate = "http://mi.talkingdata.com/reports.html?category=all&tag=all&page=%s";
 
-    private static final String orgName = "talkingData";
+    private static final String orgName = "TalkingData";
 
     private static final long intervalTime = 4 * 3600 * 1000;  //4h间隔抓取时间
 
@@ -46,7 +44,8 @@ public class TalkingDataCrawler extends BaseCrawler{
 
     @Override
     public void crawl() {
-        for (int i = 1; i<= 43; i++) {
+        //更新只要第一页
+        for (int i = 1; i<= 1; i++) {
             String historyCrawlUrl = String.format(crawlUrlTemplate, i);
             log.info("start to crawl " + historyCrawlUrl);
             try {
@@ -79,5 +78,9 @@ public class TalkingDataCrawler extends BaseCrawler{
                 log.error("crawling index page encounts error ", ex);
             }
         }
+    }
+
+    public static void main(String [] args) {
+        new TalkingDataCrawler().crawl();
     }
 }

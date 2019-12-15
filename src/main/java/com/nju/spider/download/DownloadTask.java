@@ -17,15 +17,19 @@ public class DownloadTask implements Runnable {
     @Override
     public void run() {
         //TODO 存储优化，上传oss (本地只需存在tmp目录，上传后删除即可) or 本地存(是否需要分子文件夹存，看的更舒服)
-        boolean downloadSucc = false;
-        if (!usingProxy) {
-            downloadSucc = HttpUtils.doDownload(report);
-        } else {
-            downloadSucc = HttpUtils.doDownloadWithProxy(report);
-        }
+        try {
+            boolean downloadSucc = false;
+            if (!usingProxy) {
+                downloadSucc = HttpUtils.doDownload(report);
+            } else {
+                downloadSucc = HttpUtils.doDownloadWithProxy(report);
+            }
 
-        if (downloadSucc) {
-            ReportDaoUtils.updateDownloadSatus(report);
+            if (downloadSucc) {
+                ReportDaoUtils.updateDownloadSatus(report);
+            }
+        } catch (Exception ex) {
+            log.error("downing encounts error ", ex);
         }
     }
 }

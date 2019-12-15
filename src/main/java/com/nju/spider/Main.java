@@ -4,12 +4,15 @@ import com.nju.spider.bean.Report;
 import com.nju.spider.crawler.*;
 import com.nju.spider.download.DownloadStrategy;
 import com.nju.spider.download.DownloadTask;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
+
+@Slf4j
 public class Main {
 
     private final static int crawlThreadsNum = 50;
@@ -30,6 +33,7 @@ public class Main {
         crawlerList.add(new MckinseyCnCrawler());
         crawlerList.add(new KpmgCnCrawler());
         crawlerList.add(new NielsenCrawler());
+        crawlerList.add(new TalkingDataCrawler());
 
         ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {
@@ -47,6 +51,8 @@ public class Main {
         //TODO 抽出来做一个类
         ExecutorService downloadEs = Executors.newFixedThreadPool(downloadThredsNum);
         while(true) {
+            log.info("start one round download tasks");
+            long startTime = System.currentTimeMillis();
             List<Report> reportToDowloadList = DownloadStrategy.getReportsToDownload();
             //乱序提交，防止饥饿情况(pdf下载时间很长)发生
             Collections.shuffle(reportToDowloadList);
@@ -59,6 +65,14 @@ public class Main {
                     downloadEs.submit(new DownloadTask(report, false));
                 }
             }
+            try {//等待直到所有任务完成
+                downloadEs.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
+            } catch (InterruptedException ex) {
+                log.error("awaiting termination ", ex);
+            }
+
+            long costTime = System.currentTimeMillis() - startTime;
+            log.info("end one round download tasks, cost time " + costTime + "ms.");
             try {
                 Thread.sleep(downloadSleepInterval);
             } catch (InterruptedException e) {

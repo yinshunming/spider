@@ -112,10 +112,26 @@ public class DeloitteCnCrawler extends BaseCrawler{
                         }
 
                         //第二种方式，直接在正文中找到第一个链接的文字，作为title，可能误判
-                        if (title == null) {
+                        if (StringUtils.isBlank(title)) {
                             String title2 = XpathUtils.getStringFromXpath(articleNode, "//div[@class='contentpagecolctrl section']//a/text()");
                             if (StringUtils.isNotBlank(title2)) {
                                 title = title2.replaceAll("[《》<<>>]", "").trim();
+                            }
+                        }
+
+                        //第三种方式，直接拼接文章的正副标题
+                        if (StringUtils.isBlank(title)) {
+                            String title1 = XpathUtils.getStringFromXpath(articleNode, "//div[@id='article-title']//h1/text()");
+                            String title2 = XpathUtils.getStringFromXpath(articleNode, "//div[@id='article-title']//h2/text()");
+                            if (StringUtils.isNotBlank(title1)) {
+                                title = title1;
+                            }
+                            if (StringUtils.isNotBlank(title2)) {
+                                if (StringUtils.isNotBlank(title)) {
+                                    title = title + "-" + title2;
+                                } else {
+                                    title = title2;
+                                }
                             }
                         }
 
