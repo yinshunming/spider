@@ -23,7 +23,7 @@ import java.util.List;
 @Slf4j
 public class XpathUtils {
 
-    public static String getStringFromXpathUsingContains(TagNode tagNode, String xpath) {
+    public static String getStringFromXpathUsingSpecialXpath(TagNode tagNode, String xpath) {
         String ret = null;
         try {
             Document docTmpContent = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
@@ -36,11 +36,11 @@ public class XpathUtils {
     }
 
 
-    public static String getStringFromXpathUsingContains(String res, String xpath) {
+    public static String getStringFromXpathUsingSpecialXpath(String res, String xpath) {
         String ret = null;
         try {
             TagNode tagNode = MyHtmlCleaner.clean(res);
-            ret = getStringFromXpathUsingContains(tagNode, xpath);
+            ret = getStringFromXpathUsingSpecialXpath(tagNode, xpath);
         } catch (Exception e) {
             log.error("getting string from xpath encounts error ");
         }
@@ -65,9 +65,9 @@ public class XpathUtils {
             Object[] objs = tagNode.evaluateXPath(xpath);
             for (int i = 0; i < objs.length; i++) {
                 if (objs[i] instanceof String) {
-                    retList.add(((String)objs[i]).trim());
+                    retList.add(((String)objs[i]).replace("&nbsp;", "").trim());
                 } else {
-                    retList.add(objs[i].toString().trim());
+                    retList.add(objs[i].toString().replace("&nbsp;", "").trim());
                 }
             }
         } catch (Exception ex) {
@@ -120,7 +120,7 @@ public class XpathUtils {
                 } else {
                     ret = objs[0].toString();
                 }
-                ret = ret.trim();
+                ret = ret.replace("&nbsp;", "").trim();
             }
         } catch (XPatherException e) {
             log.error("getting string from xpath encounts error ", e);
