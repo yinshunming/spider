@@ -2,6 +2,7 @@ package com.nju.spider.crawler;
 
 import com.alibaba.fastjson.JSON;
 import com.nju.spider.bean.Report;
+import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.FormatUtils;
 import com.nju.spider.utils.HttpUtils;
 import com.nju.spider.utils.XpathUtils;
@@ -50,47 +51,53 @@ public class AnalysysCrawler extends BaseCrawler {
 
     @Override
     public void crawl() {
-        for (int i = 1; i <= 723; i++) {
+        for (int i = 248; i <= 723; i++) {
             String historyUrlToCrawl = String.format(crawlUrlTemplate, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
                 String res = HttpUtils.doGetWithRetry(historyUrlToCrawl);
                 List<Report> reportList = new ArrayList<>();
-                List<TagNode> tagNodeList = XpathUtils.getTagNodeListFromXpath(res, "//ul[@class='news_left']//li//div");
+                List<TagNode> tagNodeList = XpathUtils.getTagNodeListFromXpath(res, "//ul[@class='news_left']//li[@class='clearfix']");
                 for (TagNode tagNode : tagNodeList) {
                     try {
-                        String articleHref = XpathUtils.getStringFromXpath(tagNode, "/a/@href");
-                        String summary = XpathUtils.getStringFromXpath(tagNode, "/p/@title");
-                        String title = XpathUtils.getStringFromXpath(tagNode, "/a/h1/text()");
-                        String industry1 = XpathUtils.getStringFromXpath(tagNode, "//span[@class='ehn'][1]/text()");
-                        String industry2 = XpathUtils.getStringFromXpath(tagNode, "//span[@class='ehn'][3]/text()");
-                        String publishDateStr = XpathUtils.getStringFromXpath(tagNode, "//span[@class='ehn'][2]/text()");
+                        String articleHref = XpathUtils.getStringFromXpath(tagNode, "//div/a/@href");
+                        String summary = XpathUtils.getStringFromXpath(tagNode, "//div/p/@title");
+                        String title = XpathUtils.getStringFromXpath(tagNode, "//div/a/h1/text()");
+                        String industry1 = XpathUtils.getStringFromXpath(tagNode, "//div//span[@class='ehn'][1]/text()");
+                        String industry2 = XpathUtils.getStringFromXpath(tagNode, "//div//span[@class='ehn'][3]/text()");
+                        String publishDateStr = XpathUtils.getStringFromXpath(tagNode, "//div//span[@class='ehn'][2]/text()");
                         String industry = StringUtils.isNoneBlank(industry1) ? (StringUtils.isNotBlank(industry2) ? industry1 + "-" + industry2 : industry1 ): industry2;
                         Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, simpleDateFormatThreadLocal.get());
-                        String [] hrefArrays = articleHref.split("/");
-                        String articleId = hrefArrays[hrefArrays.length - 1];
-                        if (StringUtils.isNumeric(articleId)) {
-                            String pdfUrl = String.format(downloadBaseUrl, articleId);
-                            Report report = new Report();
-                            report.setUrl(pdfUrl);
-                            report.setPublishTime(publishDate);
-                            report.setIndustryName(industry);
-                            report.setTitle(title);
-                            Map<String, String> summaryMap = new HashMap<>();
-                            summaryMap.put("short_desc", summary);
-                            String summaryJSON = JSON.toJSONString(summaryMap);
-                            report.setExtra(summaryJSON);
-                            report.setIndexUrl(historyUrlToCrawl);
-                            report.setArticleUrl(baseUrl + articleHref);
-                            report.setOrgName(orgName);
-                            reportList.add(report);
+                        String articleUrl = baseUrl + articleHref;
+
+                        String res2 = HttpUtils.doGetWithRetry(articleUrl);
+                        String result = XpathUtils.getStringFromXpath(res2, "//div[@class='title_btn']//div[@data-login]/text()");
+                        if (StringUtils.isNotBlank(result)) {
+                            String[] hrefArrays = articleHref.split("/");
+                            String articleId = hrefArrays[hrefArrays.length - 1];
+                            if (StringUtils.isNumeric(articleId)) {
+                                String pdfUrl = String.format(downloadBaseUrl, articleId);
+                                Report report = new Report();
+                                report.setUrl(pdfUrl);
+                                report.setPublishTime(publishDate);
+                                report.setIndustryName(industry);
+                                report.setTitle(title);
+                                Map<String, String> summaryMap = new HashMap<>();
+                                summaryMap.put("short_desc", summary);
+                                String summaryJSON = JSON.toJSONString(summaryMap);
+                                report.setExtra(summaryJSON);
+                                report.setIndexUrl(historyUrlToCrawl);
+                                report.setArticleUrl(articleUrl);
+                                report.setOrgName(orgName);
+                                reportList.add(report);
+                            }
                         }
                     } catch (Exception ex) {
                         log.error("error crawling article indexs", ex);
                     }
                 }
 
-                System.out.println(reportList);
+                ReportDaoUtils.insertReports(reportList);
             } catch (Exception ex) {
                 log.error("error doing crawl ", ex);
             }

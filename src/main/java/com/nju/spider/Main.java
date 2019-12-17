@@ -34,6 +34,7 @@ public class Main {
         crawlerList.add(new KpmgCnCrawler());
         crawlerList.add(new NielsenCrawler());
         crawlerList.add(new TalkingDataCrawler());
+        crawlerList.add(new AnalysysCrawler());
 
         ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {
@@ -65,8 +66,11 @@ public class Main {
                     downloadEs.submit(new DownloadTask(report, false));
                 }
             }
-            try {//等待直到所有任务完成
-                downloadEs.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
+            //等待直到所有任务完成
+            try {
+                while (!downloadEs.awaitTermination(1, TimeUnit.MINUTES)) {
+                }
+                log.info("all current round tasks ends executing");
             } catch (InterruptedException ex) {
                 log.error("awaiting termination ", ex);
             }
