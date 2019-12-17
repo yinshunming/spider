@@ -58,22 +58,24 @@ public class Main {
             //乱序提交，防止饥饿情况(pdf下载时间很长)发生
             Collections.shuffle(reportToDowloadList);
 
+            CountDownLatch countDownLatch = new CountDownLatch(reportToDowloadList.size());
+
             for (Report report : reportToDowloadList) {
                 //这边可以做个策略
                 if (needToUsingProxyDownloadOrgName.contains(report.getOrgName())) {
-                    downloadEs.submit(new DownloadTask(report, true));
+                    downloadEs.submit(new DownloadTask(report, true, countDownLatch));
                 } else {
-                    downloadEs.submit(new DownloadTask(report, false));
+                    downloadEs.submit(new DownloadTask(report, false, countDownLatch));
                 }
             }
-            //等待直到所有任务完成
+
             try {
-                while (!downloadEs.awaitTermination(1, TimeUnit.MINUTES)) {
-                }
-                log.info("all current round tasks ends executing");
-            } catch (InterruptedException ex) {
-                log.error("awaiting termination ", ex);
+                //当其中数目为0时这里才会继续运行
+                countDownLatch.await();
+            }catch (InterruptedException ex){
+                log.error("countdownlatch awaiting encounts error ", ex);
             }
+
 
             long costTime = System.currentTimeMillis() - startTime;
             log.info("end one round download tasks, cost time " + costTime + "ms.");

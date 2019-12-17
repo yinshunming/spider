@@ -7,12 +7,15 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.CountDownLatch;
+
 @Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 public class DownloadTask implements Runnable {
     private Report report;
     private boolean usingProxy;
+    private CountDownLatch countDownLatch;
 
     @Override
     public void run() {
@@ -30,6 +33,8 @@ public class DownloadTask implements Runnable {
             }
         } catch (Exception ex) {
             log.error("downing encounts error ", ex);
+        } finally {
+            countDownLatch.countDown();
         }
     }
 }

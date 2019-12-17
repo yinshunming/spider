@@ -51,7 +51,7 @@ public class AnalysysCrawler extends BaseCrawler {
 
     @Override
     public void crawl() {
-        for (int i = 248; i <= 723; i++) {
+        for (int i = 563; i <= 723; i++) {
             String historyUrlToCrawl = String.format(crawlUrlTemplate, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);
@@ -67,7 +67,7 @@ public class AnalysysCrawler extends BaseCrawler {
                         String industry2 = XpathUtils.getStringFromXpath(tagNode, "//div//span[@class='ehn'][3]/text()");
                         String publishDateStr = XpathUtils.getStringFromXpath(tagNode, "//div//span[@class='ehn'][2]/text()");
                         String industry = StringUtils.isNoneBlank(industry1) ? (StringUtils.isNotBlank(industry2) ? industry1 + "-" + industry2 : industry1 ): industry2;
-                        Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, simpleDateFormatThreadLocal.get());
+                        Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr.replace("\"", ""), simpleDateFormatThreadLocal.get());
                         String articleUrl = baseUrl + articleHref;
 
                         String res2 = HttpUtils.doGetWithRetry(articleUrl);
