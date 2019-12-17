@@ -37,7 +37,7 @@ public class PwccnCrawler extends BaseCrawler{
 
     private static ThreadLocal<SimpleDateFormat> publishDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("MM月 yyyy", Locale.SIMPLIFIED_CHINESE));
 
-    private static final boolean historyCrawl = true;
+    private static final boolean historyCrawl = false;
 
     @Override
     public String getCrawlName() {

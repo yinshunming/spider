@@ -51,7 +51,7 @@ public class AnalysysCrawler extends BaseCrawler {
 
     @Override
     public void crawl() {
-        for (int i = 563; i <= 723; i++) {
+        for (int i = 1; i <= 1; i++) {
             String historyUrlToCrawl = String.format(crawlUrlTemplate, i);
             try {
                 log.info("starting to crawl url: " + historyUrlToCrawl);

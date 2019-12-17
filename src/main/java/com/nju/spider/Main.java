@@ -19,7 +19,7 @@ public class Main {
 
     private final static int downloadThredsNum = 10; //初期不宜过大，防止被反爬
 
-    private final static long downloadSleepInterval = 10 * 60 * 1000;
+    private final static long downloadSleepInterval = 5 * 60 * 1000;
 
     private final static long initDelay = 5 * 1000;
 
