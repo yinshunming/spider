@@ -7,6 +7,7 @@ import com.nju.spider.bean.Report;
 import com.nju.spider.db.ReportDaoUtils;
 import com.nju.spider.utils.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
 
@@ -76,11 +77,14 @@ public class PwccnCrawler extends BaseCrawler{
                     Object [] viewMoreButtonObs = industryNode.evaluateXPath("//a[@ng-disabled='contentList.showLoading']/@href");
                     if (!historyCrawl) {
                         //爬更新只要这页就可以
-                        Object [] articleObs = industryNode.evaluateXPath("//article");
+                        Object [] articleObs = industryNode.evaluateXPath("//div[@class='col-xs-12']//article");
                         for (Object articleOb : articleObs) {
                             try {
                                 TagNode articleTagNode = (TagNode) articleOb;
                                 Report report = getReportInfoFromIndexPage(articleTagNode);
+                                if (report == null) {
+                                    continue;
+                                }
                                 report.setIndustryName(industryName);
                                 report.setIndexUrl(industryHref);
                                 reportList.add(report);
@@ -99,6 +103,9 @@ public class PwccnCrawler extends BaseCrawler{
                                 try {
                                     TagNode articleTagNode = (TagNode) articleTagNodeOb;
                                     Report report = getReportInfoFromIndexPage(articleTagNode);
+                                    if (report == null) {
+                                        continue;
+                                    }
                                     report.setIndustryName(industryName);
                                     report.setIndexUrl(articlePubUrl);
                                     reportList.add(report);
@@ -108,11 +115,14 @@ public class PwccnCrawler extends BaseCrawler{
                             }
                         } else {
                             //此页pdf比较少没有查看全部按钮
-                            Object[] articleObs = industryNode.evaluateXPath("//article");
+                            Object[] articleObs = industryNode.evaluateXPath("//div[@class='col-xs-12']//article");
                             for (Object articleOb : articleObs) {
                                 try {
                                     TagNode articleTagNode = (TagNode) articleOb;
                                     Report report = getReportInfoFromIndexPage(articleTagNode);
+                                    if (report == null) {
+                                        continue;
+                                    }
                                     report.setIndustryName(industryName);
                                     report.setIndexUrl(industryHref);
                                     reportList.add(report);
@@ -153,7 +163,12 @@ public class PwccnCrawler extends BaseCrawler{
                         String publishDateStr = elJO.getString("publishDate");
                         Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
                         String title = elJO.getString("title");
-                        String pdfUrl = baseUrl + getPdfUrlFromArticlePage(articleUrl);
+
+                        String pdfUrlTemp = getPdfUrlFromArticlePage(articleUrl);
+                        if (StringUtils.isBlank(pdfUrlTemp)) {
+                            continue;
+                        }
+                        String pdfUrl = baseUrl + pdfUrlTemp;
 
                         Report report = new Report();
                         report.setTitle(title);
@@ -180,7 +195,14 @@ public class PwccnCrawler extends BaseCrawler{
         String publishDateStr = XpathUtils.getStringFromXpath(tagNode, "//a//p//time/text()");
         Date publishDate = FormatUtils.parseDateByDateFormate(publishDateStr, publishDateFormatThreadLocal.get());
         String title = XpathUtils.getStringFromXpath(tagNode, "//a//h4/span/text()");
-        String pdfUrl = baseUrl + getPdfUrlFromArticlePage(articleHref);
+        if (!articleHref.startsWith("http://") && !articleHref.startsWith("https://")) {
+            return null;
+        }
+        String pdfUrlTemp = getPdfUrlFromArticlePage(articleHref);
+        if (StringUtils.isBlank(pdfUrlTemp)) {
+            return null;
+        }
+        String pdfUrl = baseUrl + pdfUrlTemp;
         Report report = new Report();
         report.setPublishTime(publishDate);
         report.setUrl(pdfUrl);
@@ -196,5 +218,7 @@ public class PwccnCrawler extends BaseCrawler{
         return pdfUrl;
     }
 
-
+    public static void main(String [] args) {
+        new PwccnCrawler().crawl();
+    }
 }
