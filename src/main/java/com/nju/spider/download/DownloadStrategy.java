@@ -6,6 +6,8 @@ import com.nju.spider.utils.FormatUtils;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,7 +19,7 @@ public class DownloadStrategy {
 
     private static String downloadFolderBase = "D:/reports";
 
-    private static final Pattern fileNamePattern = Pattern.compile("filename=\"(.*)\"");
+    private static final Pattern fileNamePattern = Pattern.compile("file[nN]ame=\"?(.*)\"?");
 
     public static List<Report> getReportsToDownload() {
         List<Report> reportList = ReportDaoUtils.getReportsToDownload();
@@ -54,8 +56,10 @@ public class DownloadStrategy {
                 Matcher matcher = fileNamePattern.matcher(fileName);
                 if (matcher.find()) {
                     String newFileName = matcher.group(1);
+                    //TODO 默认utf-8解码，实际上可能多种
+                    newFileName = URLDecoder.decode(newFileName, "utf-8").trim().replace("\t", "");
                     //TODO 根据content-type设置类型，暂时只处理pdf类型
-                    filePath = filePath.replaceAll("[^/]+\\.pdf", newFileName);
+                    filePath = filePath.replaceAll("[^/]+\\.pdf", newFileName).replace("\"", "").trim();
                 }
             }
         } catch (Exception ex) {
@@ -65,10 +69,17 @@ public class DownloadStrategy {
         return filePath;
     }
 
-    public static void main(String [] args) {
-//        String filePath = "D:/reports/123.pdf";
+    public static void main(String [] args) throws UnsupportedEncodingException {
+        String filePath = "D:/reports/123.pdf";
 //        String contentDispositionValue = "inline; filename=\"Accenture-2017CostCybercrime-US-FINAL.pdf\"";
-//        String newPath = DownloadStrategy.changeFileNameAccordingToResponse(contentDispositionValue, filePath);
-//        System.out.println(newPath);
+        String contentDispositionValue = "filename=2017%e5%b9%b4%e4%b8%ad%e5%9b%bd%e5%a4%8d%e8%b4%ad%e6%b1%bd%e8%bd%a6%e7%94%a8%e6%88%b7%e7%a0%94%e7%a9%b6%e6%8a%a5%e5%91%8a%09.pdf";
+        Matcher matcher = fileNamePattern.matcher(contentDispositionValue);
+        if (matcher.find()) {
+            String newFileName = matcher.group(1);
+
+            newFileName = URLDecoder.decode(newFileName, "utf-8").replace("\t", "");
+            filePath = filePath.replaceAll("[^/]+\\.pdf", newFileName).replace("\"", "");
+        }
+        System.out.println(filePath);
     }
 }
