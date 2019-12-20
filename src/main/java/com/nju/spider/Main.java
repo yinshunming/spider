@@ -35,6 +35,7 @@ public class Main {
         crawlerList.add(new NielsenCrawler());
         crawlerList.add(new TalkingDataCrawler());
         crawlerList.add(new AnalysysCrawler());
+        crawlerList.add(new IresearchCrawler());
 
         ScheduledExecutorService es = Executors.newScheduledThreadPool(crawlThreadsNum);
         for (BaseCrawler baseCrawler : crawlerList) {
