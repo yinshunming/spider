@@ -33,8 +33,8 @@ public class AnalysysCrawler extends BaseCrawler {
     private static final String baseUrl = "https://www.analysys.cn";
 
     //经测试，无需登录就可以下载
-//    private static final String userName = "yinshunmingjava@aliyun.com";
-//    private static final String password = "TYS2SReX8Lxzaer";
+//    private static final String userName = "";
+//    private static final String password = "";
 
     private static ThreadLocal<SimpleDateFormat> simpleDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd", Locale.US));
 
