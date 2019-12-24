@@ -49,6 +49,9 @@ public class HttpUtils {
         return proxy;
     }
 
+    public static String doGetWithRetry(String url, Map<String, String> headers) {
+        return doGetWithRetry(url, defaultRetryTimes, false, headers);
+    }
 
     public static String doGetWithRetry(String url) {
         return doGetWithRetry(url, defaultRetryTimes);
@@ -60,8 +63,12 @@ public class HttpUtils {
     }
 
     public static String doGetWithRetry(String url, int retryCount, boolean usingProxy) {
+        return doGetWithRetry(url,  retryCount, usingProxy, null);
+    }
+
+    public static String doGetWithRetry(String url, int retryCount, boolean usingProxy, Map<String, String> headers) {
         for (int i = 0 ; i < retryCount; i++) {
-            String res = doGet(url, usingProxy);
+            String res = doGet(url, usingProxy, headers);
             if (StringUtils.isNotBlank(res)) {
                 return res;
             }
@@ -228,6 +235,10 @@ public class HttpUtils {
     }
 
     public static String doGet(String url, boolean usingProxy) {
+        return doGet(url, usingProxy, null);
+    }
+
+    public static String doGet(String url, boolean usingProxy, Map<String, String> headers) {
         String resStr = null;
 
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
@@ -237,6 +248,13 @@ public class HttpUtils {
             HttpHost proxy = getProxy();
             requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(15000).setProxy(proxy).build();
         }
+
+        if (headers != null && headers.size() > 0) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                httpGet.setHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
         httpGet.setConfig(requestConfig);
         httpGet.setHeader("User-Agent", defaulUserAgent);
 
