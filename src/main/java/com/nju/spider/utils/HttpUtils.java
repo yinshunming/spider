@@ -286,6 +286,40 @@ public class HttpUtils {
         return resStr;
     }
 
+    public static boolean doDownload(String url, String fileName, String fileBasePath) {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpGet httpGet = new HttpGet(url);
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(20000).build();
+        httpGet.setHeader("User-Agent", defaulUserAgent);
+        httpGet.setConfig(requestConfig);
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpGet);
+            String filePath = fileBasePath + "\\" + fileName;
+            HttpEntity entity = response.getEntity();
+            if (entity != null && HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+                InputStream is = entity.getContent();
+                File file = new File(filePath);
+                file.getParentFile().mkdirs();
+                FileOutputStream fileout = new FileOutputStream(file);
+                /**
+                 * 根据实际运行效果 设置缓冲区大小
+                 */
+                byte[] buffer = new byte[1024 * 30];
+                int ch = 0;
+                while ((ch = is.read(buffer)) != -1) {
+                    fileout.write(buffer, 0, ch);
+                }
+                is.close();
+                fileout.flush();
+                fileout.close();
+                return true;
+            }
+        } catch (Exception ex) {
+            log.error("download file encounts error " + url, ex);
+        }
+        return false;
+    }
 
     public static boolean doDownload(Report report) {
         return doDownload(report, false);
